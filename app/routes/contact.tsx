@@ -1,0 +1,11 @@
+import { PageHeader } from "~/components/ui/PageHeader";
+import { pageMeta } from "~/lib/meta";
+
+// PAGE PROVISOIRE — à construire.
+export function meta() {
+  return pageMeta({ title: "Contact", description: "Page en construction.", path: "/contact" });
+}
+
+export default function ContactPage() {
+  return <PageHeader title="Contact" description="Page en construction." />;
+}
