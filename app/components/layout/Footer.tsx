@@ -30,8 +30,8 @@ export function Footer() {
   return (
     <footer className="bg-ink-950 text-ink-300">
       <Container className="py-14">
-        <div className="grid gap-10 lg:grid-cols-[1.4fr_repeat(3,1fr)]">
-          <div className="max-w-sm">
+        <div className="grid grid-cols-2 gap-x-6 gap-y-10 lg:grid-cols-[1.4fr_repeat(3,1fr)]">
+          <div className="col-span-2 max-w-sm lg:col-span-1">
             <Logo inverse />
             <p className="mt-4 text-sm leading-relaxed">{siteConfig.description}</p>
             <div className="mt-5 text-sm">
