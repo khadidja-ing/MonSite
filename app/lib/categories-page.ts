@@ -17,12 +17,12 @@ export function categoryCatalogLink(slug: CategorySlug): string {
 
 /**
  * Description de la page d'une catégorie pour les moteurs de recherche
- * (environ 120 à 170 caractères) : le résumé de la catégorie, complété.
+ * (environ 120 à 160 caractères) : le résumé de la catégorie, complété.
  */
 export function categoryMetaDescription(category: Pick<Category, "summary">): string {
   const summary = category.summary.trim();
   const sentence = /[.!?…]$/.test(summary) ? summary : `${summary}.`;
-  return `${sentence} Exemples d'utilisation et outils d'IA expliqués simplement pour bien choisir.`;
+  return `${sentence} Exemples d'usage et outils d'IA expliqués simplement pour bien choisir.`;
 }
 
 /** Toutes les catégories sauf celle indiquée, dans l'ordre d'affichage. */

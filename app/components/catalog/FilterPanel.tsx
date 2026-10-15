@@ -28,7 +28,7 @@ function FilterOption({
   return (
     <label
       className={cn(
-        "grid min-h-10 cursor-pointer grid-cols-[1.25rem_minmax(0,1fr)_auto] items-center gap-x-3 rounded-xl px-2.5 py-2 transition-colors lg:min-h-9 lg:py-1.5",
+        "grid min-h-10 cursor-pointer grid-cols-[1.25rem_minmax(0,1fr)_auto] items-center gap-x-3 rounded-xl px-2.5 py-2 transition-colors",
         checked ? "bg-brand-50 hover:bg-brand-100/70" : "hover:bg-ink-50",
       )}
     >

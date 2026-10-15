@@ -25,7 +25,7 @@ export function Logo({ className, inverse = false }: { className?: string; inver
       <LogoMark />
       <span
         className={cn(
-          "font-display text-lg font-bold tracking-tight",
+          "font-display text-lg font-bold tracking-tight whitespace-nowrap",
           inverse ? "text-white" : "text-ink-950",
         )}
       >

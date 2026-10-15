@@ -279,7 +279,7 @@ export default function OutilPage({ params }: Route.ComponentProps) {
       </PageHeader>
 
       <Container className="py-12 sm:py-16">
-        <div className="grid gap-12 lg:grid-cols-[minmax(0,1fr)_22rem] lg:gap-14">
+        <div className="grid grid-cols-1 gap-12 lg:grid-cols-[minmax(0,1fr)_22rem] lg:gap-14">
           <div className="space-y-12 sm:space-y-14">
             <DetailSection id="presentation" title="Présentation">
               <p className="max-w-3xl text-lg leading-relaxed text-ink-700">{tool.description}</p>
@@ -314,7 +314,7 @@ export default function OutilPage({ params }: Route.ComponentProps) {
             </DetailSection>
           </div>
 
-          <aside aria-label="Sources et vérification de la fiche">
+          <aside aria-label="Sources et vérification de la fiche" className="min-w-0">
             <SourcesCard tool={tool} />
           </aside>
         </div>

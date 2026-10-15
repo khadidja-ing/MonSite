@@ -55,7 +55,7 @@ export function Header() {
         </nav>
 
         <div className="flex items-center gap-2">
-          <ButtonLink to="/contact" size="sm" className="hidden sm:inline-flex">
+          <ButtonLink to="/contact" size="sm" className="max-sm:hidden">
             Nous contacter
           </ButtonLink>
           <button

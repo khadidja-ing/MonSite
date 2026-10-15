@@ -4,7 +4,7 @@ import { NotFoundContent } from "~/components/layout/NotFoundContent";
 import { FinalCta } from "~/components/home/FinalCta";
 import { ArticleBody } from "~/components/resources/ArticleBody";
 import { ArticleCard } from "~/components/resources/ArticleCard";
-import { ArticleOutline } from "~/components/resources/ArticleOutline";
+import { ArticleOutline, ArticleOutlineDisclosure } from "~/components/resources/ArticleOutline";
 import { RelatedCategories } from "~/components/resources/RelatedCategories";
 import { ArticleDate, LevelBadge, ReadingTime, ResourceTypeBadge } from "~/components/resources/ResourceBadges";
 import { ButtonLink } from "~/components/ui/Button";
@@ -126,6 +126,7 @@ export default function ArticlePage({ params }: Route.ComponentProps) {
       <Container className="py-12 sm:py-16">
         <div className="grid gap-12 lg:grid-cols-[minmax(0,1fr)_15rem] lg:gap-16 xl:grid-cols-[minmax(0,1fr)_17rem]">
           <div className="min-w-0 max-w-3xl">
+            <ArticleOutlineDisclosure items={outline} className="mb-10 lg:hidden" />
             <ArticleBody body={article.body} />
 
             {relatedCategories.length > 0 && (

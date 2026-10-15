@@ -40,7 +40,10 @@ function getSections(): SiteSection[] {
       icon: BookOpen,
       title: "Les ressources",
       text: "Des guides pour débuter : comprendre les bases, bien formuler ses demandes, connaître les limites.",
-      meta: articles.length > 0 ? `${plural(articles.length, "guide")} publié${articles.length > 1 ? "s" : ""}` : undefined,
+      meta:
+        articles.length > 0
+          ? `${plural(articles.length, "article")} publié${articles.length > 1 ? "s" : ""}`
+          : undefined,
     },
     {
       to: "/services",

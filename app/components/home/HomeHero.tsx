@@ -47,7 +47,7 @@ export function HomeHero() {
 
           <h1
             id="accueil-titre"
-            className="mt-6 text-4xl leading-[1.08] font-bold tracking-tight sm:text-5xl lg:text-6xl"
+            className="mt-6 text-4xl leading-[1.08] font-bold tracking-tight sm:text-5xl xl:text-6xl"
           >
             Trouvez l'outil d'IA qu'il vous faut,{" "}
             <span className="text-brand-600">expliqué simplement</span>

@@ -41,7 +41,7 @@ describe("categoryMetaDescription", () => {
       const description = categoryMetaDescription(category);
       expect(description.startsWith(category.summary)).toBe(true);
       expect(description.length).toBeGreaterThanOrEqual(110);
-      expect(description.length).toBeLessThanOrEqual(175);
+      expect(description.length).toBeLessThanOrEqual(160);
     }
   });
 

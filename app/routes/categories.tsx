@@ -18,7 +18,7 @@ export function meta(_: Route.MetaArgs) {
   return pageMeta({
     title: "Catégories d'outils d'IA",
     description:
-      "Découvrez les outils d'intelligence artificielle classés par usage : rédaction, images, vidéo, audio, automatisation… Choisissez une catégorie pour bien commencer.",
+      "Découvrez les outils d'intelligence artificielle classés par usage : rédaction, images, vidéo, audio, automatisation… Choisissez une catégorie pour commencer.",
     path: "/categories",
   });
 }
