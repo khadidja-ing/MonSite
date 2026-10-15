@@ -145,7 +145,7 @@ export const categories: Category[] = [
     name: "Solutions professionnelles et entreprises",
     shortName: "Entreprises",
     icon: "building",
-    summary: "Des outils pensés pour les équipes : sécurité, gestion des accès et intégration.",
+    summary: "Des outils pensés pour les équipes, avec sécurité, gestion des accès et intégration.",
     description:
       "Les entreprises ont des besoins particuliers : confidentialité des données, gestion des accès des salariés, intégration avec les logiciels existants. Plusieurs éditeurs proposent des offres dédiées, souvent intégrées aux outils de bureautique déjà utilisés.",
     examples: [

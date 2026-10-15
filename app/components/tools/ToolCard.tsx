@@ -48,17 +48,17 @@ export function ToolCard({ tool, headingLevel = "h3" }: { tool: Tool; headingLev
           {category && <Badge>{category.shortName}</Badge>}
           <AccessBadge access={tool.access} />
         </div>
-        <div className="mt-4 flex items-center justify-between gap-3 border-t border-ink-100 pt-4 text-sm">
-          <span className="font-semibold text-brand-700 group-hover:underline" aria-hidden="true">
+        <div className="mt-4 flex items-center justify-between gap-3 border-t border-ink-100 pt-2 text-sm">
+          <span className="font-semibold whitespace-nowrap text-brand-700 group-hover:underline" aria-hidden="true">
             En savoir plus
           </span>
           <a
             href={tool.website}
             target="_blank"
             rel="noopener noreferrer"
-            className="relative z-10 inline-flex items-center gap-1 rounded text-ink-600 hover:text-brand-700 hover:underline"
+            className="relative z-10 inline-flex min-h-10 min-w-0 items-center gap-1 rounded text-ink-600 hover:text-brand-700 hover:underline"
           >
-            {displayDomain(tool.website)}
+            <span className="truncate">{displayDomain(tool.website)}</span>
             <ArrowUpRight aria-hidden="true" className="size-4" />
             <span className="sr-only"> — site officiel de {tool.name} (nouvel onglet)</span>
           </a>

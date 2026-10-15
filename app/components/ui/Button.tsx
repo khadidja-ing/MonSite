@@ -72,7 +72,7 @@ export function ExternalButtonLink({
       {...props}
     >
       {children}
-      <span className="sr-only"> (s'ouvre dans un nouvel onglet)</span>
+      <span className="sr-only"> (nouvel onglet)</span>
     </a>
   );
 }
