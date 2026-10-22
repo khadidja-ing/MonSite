@@ -24,7 +24,7 @@ const obstacles: { icon: LucideIcon; title: string; text: string }[] = [
 export function WhySection() {
   return (
     <section aria-labelledby="pourquoi-titre" className="border-y border-ink-100 bg-ink-50/60 py-20 sm:py-24">
-      <Container className="grid gap-12 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-16">
+      <Container className="grid grid-cols-1 gap-12 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-16">
         <div>
           <SectionHeading
             id="pourquoi-titre"
@@ -41,7 +41,7 @@ export function WhySection() {
           </div>
         </div>
 
-        <ul className="grid gap-4">
+        <ul className="grid grid-cols-1 gap-4">
           {obstacles.map((obstacle) => {
             const Icon = obstacle.icon;
             return (
@@ -91,7 +91,7 @@ export function MissionVision() {
           title="Notre mission et notre vision"
           align="center"
         />
-        <div className="mt-12 grid gap-5 lg:grid-cols-2">
+        <div className="mt-12 grid grid-cols-1 gap-5 lg:grid-cols-2">
           {items.map((item) => {
             const Icon = item.icon;
             return (

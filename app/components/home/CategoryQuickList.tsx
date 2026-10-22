@@ -1,5 +1,6 @@
 import { ChevronRight, Lightbulb } from "lucide-react";
 import { Link } from "react-router";
+import { canReceiveMessages } from "~/config/site";
 import { categories } from "~/data/categories";
 import type { Tool } from "~/data/types";
 import { getToolsByCategory } from "~/lib/catalog";
@@ -49,7 +50,9 @@ export function CategoryQuickList({ tools, className }: { tools: Tool[]; classNa
           </span>
           <span className="min-w-0 flex-1">
             <span className="block font-semibold text-ink-950">Un outil vous manque ?</span>
-            <span className="block text-sm text-brand-700">Suggérer un outil</span>
+            <span className="block text-sm text-brand-700">
+              {canReceiveMessages ? "Suggérer un outil" : "Préparer ma suggestion"}
+            </span>
           </span>
           <ChevronRight aria-hidden="true" className="size-5 shrink-0 text-ink-400" />
         </Link>

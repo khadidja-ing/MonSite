@@ -48,7 +48,7 @@ export function FeaturedArticleCard({ article, headingLevel = "h3" }: { article:
   const outline = getOutline(article.body).slice(0, 6);
 
   return (
-    <article className="group relative grid overflow-hidden rounded-3xl bg-white shadow-card ring-1 ring-ink-100 transition-shadow hover:shadow-card-hover lg:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)]">
+    <article className="group relative grid grid-cols-1 overflow-hidden rounded-3xl bg-white shadow-card ring-1 ring-ink-100 transition-shadow hover:shadow-card-hover lg:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)]">
       <div className="flex flex-col p-6 sm:p-8 lg:p-10">
         <p className="flex items-center gap-2 text-sm font-semibold text-accent-700">
           <Compass aria-hidden="true" className="size-4" />

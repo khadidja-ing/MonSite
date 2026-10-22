@@ -80,7 +80,7 @@ export function LegalPage({
                         href={`#${section.id}`}
                         className="flex min-h-10 items-center gap-2.5 rounded-lg px-2 py-1.5 text-ink-700 transition-colors hover:bg-white hover:text-brand-700"
                       >
-                        <span aria-hidden="true" className="w-5 shrink-0 text-right text-xs font-semibold text-ink-400 tabular-nums">
+                        <span aria-hidden="true" className="w-5 shrink-0 text-right text-xs font-semibold text-ink-500 tabular-nums">
                           {index + 1}.
                         </span>
                         <span>{section.title}</span>

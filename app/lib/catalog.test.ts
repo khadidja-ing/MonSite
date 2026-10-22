@@ -144,6 +144,7 @@ describe("recherche en langage naturel", () => {
   it("ignore les mots courants", () => {
     expect(queryTerms("Je veux faire une vidéo")).toEqual(["video"]);
     expect(queryTerms("un")).toEqual(["un"]);
+    expect(queryTerms("écrire un e-mail")).toEqual(["ecrire", "mail"]);
   });
 
   it("rapproche les mots de même famille (traduire / traduction)", () => {
@@ -192,9 +193,11 @@ describe("recherche sur le catalogue réel", () => {
   });
 
   it.each(["faire une vidéo", "transcrire une réunion", "écrire un e-mail", "créer un logo", "image, voix, traduction"])(
-    "« %s » donne des résultats",
+    "« %s » donne des résultats, sans renvoyer tout le catalogue",
     (query) => {
-      expect(search(query).length).toBeGreaterThan(0);
+      const found = search(query).length;
+      expect(found).toBeGreaterThan(0);
+      expect(found).toBeLessThan(realTools.length);
     },
   );
 });

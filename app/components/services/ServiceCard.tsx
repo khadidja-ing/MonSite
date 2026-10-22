@@ -1,5 +1,6 @@
 import { ArrowRight, Check } from "lucide-react";
 import { ButtonLink } from "~/components/ui/Button";
+import { canReceiveMessages } from "~/config/site";
 import type { Service } from "~/data/types";
 import { getIcon } from "~/lib/icons";
 import { serviceContactLink, serviceCtaLabel } from "~/lib/services-page";
@@ -7,7 +8,9 @@ import { ServiceStatusBadge } from "./ServiceStatusBadge";
 
 /**
  * Présentation complète d'un service : statut, description, bénéfices,
- * public visé et bouton de contact (dont le libellé dépend du statut).
+ * public visé et bouton de contact. Le libellé du bouton dépend du statut du
+ * service et du fait qu'un moyen de contact fonctionne déjà : sinon, il invite
+ * seulement à préparer sa demande, sans promettre qu'elle sera envoyée.
  */
 export function ServiceCard({ service }: { service: Service }) {
   const Icon = getIcon(service.icon);
@@ -20,7 +23,7 @@ export function ServiceCard({ service }: { service: Service }) {
       className="rounded-3xl bg-white p-6 shadow-card ring-1 ring-ink-100 sm:p-8"
     >
       {/* Sur téléphone : texte, bénéfices, puis bouton. Sur grand écran : bouton sous le texte. */}
-      <div className="grid gap-7 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] lg:grid-rows-[1fr_auto] lg:gap-x-10 lg:gap-y-8">
+      <div className="grid grid-cols-1 gap-7 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] lg:grid-rows-[1fr_auto] lg:gap-x-10 lg:gap-y-8">
         <div className="lg:col-start-1 lg:row-start-1">
           <div className="flex items-center justify-between gap-3">
             <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-brand-50 text-brand-700 ring-1 ring-brand-100 ring-inset">
@@ -76,7 +79,7 @@ export function ServiceCard({ service }: { service: Service }) {
             variant={service.status === "disponible" ? "primary" : "secondary"}
             className="w-full sm:w-auto"
           >
-            {serviceCtaLabel(service.status)}
+            {canReceiveMessages ? serviceCtaLabel(service.status) : "Préparer ma demande"}
             <span className="sr-only"> : {service.title}</span>
             <ArrowRight aria-hidden="true" />
           </ButtonLink>

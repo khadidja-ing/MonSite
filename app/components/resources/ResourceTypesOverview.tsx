@@ -21,7 +21,7 @@ export function ResourceTypesOverview({
   listAnchor: string;
 }) {
   return (
-    <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+    <ul className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
       {resourceTypes.map((type) => {
         const Icon = getIcon(type.icon);
         const count = counts[type.slug] ?? 0;

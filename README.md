@@ -49,8 +49,9 @@ Le contenu est séparé de la mise en page : pour changer un texte, on modifie u
 
 - [ ] Choisir le **nom définitif** (et vérifier qu'il n'est pas déjà utilisé comme marque).
 - [ ] Choisir un **hébergeur** et un **nom de domaine**, puis renseigner `VITE_SITE_URL` (voir plus bas).
-- [ ] Brancher un **service d'envoi du formulaire de contact** et renseigner `VITE_CONTACT_FORM_ENDPOINT`. Tant que ce n'est pas fait, le formulaire indique honnêtement que l'envoi n'est pas activé.
-- [ ] Compléter les **informations légales** dans `app/config/site.ts` (éditeur, hébergeur…) et faire relire les pages légales, idéalement par un professionnel.
+- [ ] Prévoir **au moins un moyen de contact qui fonctionne** : l'**e-mail de contact** (`contact.email` dans `app/config/site.ts`) **ou** l'adresse d'envoi du formulaire (`VITE_CONTACT_FORM_ENDPOINT`, voir plus bas). Sans l'un des deux, les pages légales n'indiquent aucun moyen de joindre l'éditeur ni d'exercer ses droits sur ses données (elles affichent un repère « À compléter »), et le site invite seulement à préparer son message.
+- [ ] Pour activer le formulaire : brancher un **service d'envoi** (ex. Formspree), renseigner `VITE_CONTACT_FORM_ENDPOINT` **et, en même temps**, compléter dans `app/config/site.ts` `contact.formProvider` (nom du service, lieu de traitement des données, lien vers sa politique de confidentialité) et `legal.messageRetention` (durée de conservation des messages) : la politique de confidentialité les affiche. Tant que l'adresse d'envoi est vide, le formulaire indique honnêtement que l'envoi n'est pas activé.
+- [ ] Compléter les **informations légales** dans `app/config/site.ts` (éditeur, hébergeur, durée de conservation des journaux de l'hébergeur `legal.hostLogRetention`…) et faire relire les pages légales, idéalement par un professionnel. Quelques repères « À compléter / À confirmer » se trouvent directement dans les pages légales (`app/routes/confidentialite.tsx`, `mentions-legales.tsx`, `conditions-utilisation.tsx`) : base légale, transferts hors de l'Union européenne, droit applicable…
 - [ ] Rédiger la **présentation** dans la page À propos (bloc « Contenu à compléter »).
 - [ ] Confirmer les **services** réellement proposés.
 - [ ] Si le nom change : régénérer l'image de partage `public/og-image.png`.

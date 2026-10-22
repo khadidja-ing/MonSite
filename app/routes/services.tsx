@@ -9,7 +9,7 @@ import { EmptyState } from "~/components/ui/EmptyState";
 import { Notice } from "~/components/ui/Notice";
 import { PageHeader } from "~/components/ui/PageHeader";
 import { SectionHeading } from "~/components/ui/SectionHeading";
-import { siteConfig } from "~/config/site";
+import { canReceiveMessages, siteConfig } from "~/config/site";
 import { services } from "~/data/services";
 import { pageMeta } from "~/lib/meta";
 import { countServicesByStatus } from "~/lib/services-page";
@@ -19,13 +19,23 @@ const statusCounts = countServicesByStatus(services);
 const inPreparation = statusCounts["en-preparation"];
 const allInPreparation = services.length > 0 && inPreparation === services.length;
 
+/**
+ * Libellé des boutons qui mènent à la page de contact. Tant qu'aucun moyen de
+ * contact ne fonctionne, ils invitent seulement à préparer sa demande.
+ */
+const contactCtaLabel = canReceiveMessages ? "Nous contacter" : "Préparer ma demande";
+
 export function meta(_: Route.MetaArgs) {
   return pageMeta({
     title: "Services professionnels en intelligence artificielle",
     description:
       inPreparation > 0
-        ? "Conseil, automatisation, chatbots, formation, création de sites : découvrez les services d'accompagnement en IA en préparation et manifestez votre intérêt."
-        : "Conseil, automatisation, chatbots, formation, création de sites : découvrez nos services d'accompagnement en IA et échangez avec nous sur votre besoin.",
+        ? canReceiveMessages
+          ? "Conseil, automatisation, chatbots, formation, création de sites : découvrez les services d'accompagnement en IA en préparation et manifestez votre intérêt."
+          : "Conseil, automatisation, chatbots, formation, création de sites : découvrez les services d'accompagnement en IA en préparation et la démarche envisagée."
+        : canReceiveMessages
+          ? "Conseil, automatisation, chatbots, formation, création de sites : découvrez nos services d'accompagnement en IA et échangez avec nous sur votre besoin."
+          : "Conseil, automatisation, chatbots, formation, création de sites : découvrez nos services d'accompagnement en IA et la démarche envisagée.",
     path: "/services",
   });
 }
@@ -35,14 +45,18 @@ function PreparationNotice() {
 
   return allInPreparation ? (
     <Notice title="Ces services sont en cours de préparation" className="max-w-3xl">
-      Ils ne sont pas encore proposés et aucune date d'ouverture n'est fixée pour l'instant. Si l'un
-      d'eux vous intéresse, vous pouvez déjà manifester votre intérêt via le formulaire de contact :
-      cela ne vous engage à rien.
+      Ils ne sont pas encore proposés et aucune date d'ouverture n'est fixée pour l'instant.{" "}
+      {canReceiveMessages
+        ? "Si l'un d'eux vous intéresse, vous pouvez déjà manifester votre intérêt via le formulaire de contact : cela ne vous engage à rien."
+        : "Si l'un d'eux vous intéresse, vous pourrez manifester votre intérêt dès que le formulaire de contact sera activé : cela ne vous engagera à rien."}
     </Notice>
   ) : (
     <Notice title="Certains services sont encore en préparation" className="max-w-3xl">
       Ils sont signalés par l'étiquette « En préparation » : ils ne sont pas encore proposés et aucune
-      date d'ouverture n'est fixée. Vous pouvez déjà manifester votre intérêt, sans engagement.
+      date d'ouverture n'est fixée.{" "}
+      {canReceiveMessages
+        ? "Vous pouvez déjà manifester votre intérêt, sans engagement."
+        : "Dès que le formulaire de contact sera activé, vous pourrez manifester votre intérêt, sans engagement."}
     </Notice>
   );
 }
@@ -93,8 +107,12 @@ export default function ServicesPage() {
             <div className="mt-10">
               <EmptyState
                 title="Aucun service n'est présenté pour l'instant"
-                description="Vous pouvez néanmoins nous écrire pour nous parler de votre besoin."
-                action={<ButtonLink to="/contact">Nous contacter</ButtonLink>}
+                description={
+                  canReceiveMessages
+                    ? "Vous pouvez néanmoins nous écrire pour nous parler de votre besoin."
+                    : "Dès que le formulaire de contact sera activé, vous pourrez nous écrire pour nous parler de votre besoin."
+                }
+                action={<ButtonLink to="/contact">{contactCtaLabel}</ButtonLink>}
               />
             </div>
           )}
@@ -109,11 +127,13 @@ export default function ServicesPage() {
         id="contact-services-titre"
         title="Un besoin, un projet, une question ?"
         description={
-          inPreparation > 0
-            ? "Décrivez votre situation en quelques mots. Même si les services sont encore en préparation, votre message permet de mieux comprendre vos attentes."
-            : "Décrivez votre situation en quelques mots pour échanger sur votre besoin."
+          !canReceiveMessages
+            ? "Le formulaire de contact n'est pas encore activé : aucun message ne peut nous être envoyé pour l'instant. Vous pouvez néanmoins préparer votre demande en quelques mots et la garder de côté."
+            : inPreparation > 0
+              ? "Décrivez votre situation en quelques mots. Même si les services sont encore en préparation, votre message permet de mieux comprendre vos attentes."
+              : "Décrivez votre situation en quelques mots pour échanger sur votre besoin."
         }
-        primary={{ label: "Nous contacter", to: "/contact" }}
+        primary={{ label: contactCtaLabel, to: "/contact" }}
         secondary={{ label: "Explorer les outils", to: "/outils" }}
       />
     </>

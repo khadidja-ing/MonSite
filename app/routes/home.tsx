@@ -13,6 +13,7 @@ import { Container } from "~/components/ui/Container";
 import { EmptyState } from "~/components/ui/EmptyState";
 import { Notice } from "~/components/ui/Notice";
 import { SectionHeading } from "~/components/ui/SectionHeading";
+import { canReceiveMessages } from "~/config/site";
 import { categories } from "~/data/categories";
 import { services } from "~/data/services";
 import { tools } from "~/data/tools";
@@ -90,7 +91,7 @@ export default function HomePage() {
           />
 
           {featuredTools.length > 0 ? (
-            <ul className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            <ul className="mt-12 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {featuredTools.map((tool) => (
                 <li key={tool.slug}>
                   <ToolCard tool={tool} />
@@ -123,9 +124,16 @@ export default function HomePage() {
 
       <FinalCta
         title="Vous ne savez pas par où commencer ?"
-        description="Parcourez le catalogue à votre rythme, ou écrivez-nous en quelques mots ce que vous aimeriez faire avec l'IA."
+        description={
+          canReceiveMessages
+            ? "Parcourez le catalogue à votre rythme, ou écrivez-nous en quelques mots ce que vous aimeriez faire avec l'IA."
+            : "Parcourez le catalogue à votre rythme. Dès que le formulaire de contact sera activé, vous pourrez aussi nous décrire en quelques mots ce que vous aimeriez faire avec l'IA."
+        }
         primary={{ label: "Explorer les outils", to: "/outils" }}
-        secondary={{ label: "Nous contacter", to: "/contact" }}
+        secondary={{
+          label: canReceiveMessages ? "Nous contacter" : "Voir comment nous contacter",
+          to: "/contact",
+        }}
       />
     </>
   );

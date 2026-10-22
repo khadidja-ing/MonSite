@@ -1,5 +1,5 @@
 import { Link } from "react-router";
-import { legalNav, mainNav, siteConfig } from "~/config/site";
+import { canReceiveMessages, legalNav, mainNav, siteConfig } from "~/config/site";
 import { categories } from "~/data/categories";
 import { Container } from "../ui/Container";
 import { Logo } from "./Logo";
@@ -41,7 +41,7 @@ export function Footer() {
                 </a>
               ) : (
                 <Link to="/contact" className="text-white hover:underline">
-                  Écrire via le formulaire de contact
+                  {canReceiveMessages ? "Écrire via le formulaire de contact" : "Voir comment nous contacter"}
                 </Link>
               )}
             </div>

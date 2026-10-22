@@ -11,7 +11,7 @@ import { ButtonLink } from "~/components/ui/Button";
 import { Container } from "~/components/ui/Container";
 import { PageHeader } from "~/components/ui/PageHeader";
 import { SectionHeading } from "~/components/ui/SectionHeading";
-import { siteConfig } from "~/config/site";
+import { canReceiveMessages, siteConfig } from "~/config/site";
 import { articles, getArticle } from "~/data/articles";
 import { getCategory } from "~/data/categories";
 import { getResourceType } from "~/data/resource-types";
@@ -124,7 +124,7 @@ export default function ArticlePage({ params }: Route.ComponentProps) {
       </PageHeader>
 
       <Container className="py-12 sm:py-16">
-        <div className="grid gap-12 lg:grid-cols-[minmax(0,1fr)_15rem] lg:gap-16 xl:grid-cols-[minmax(0,1fr)_17rem]">
+        <div className="grid grid-cols-1 gap-12 lg:grid-cols-[minmax(0,1fr)_15rem] lg:gap-16 xl:grid-cols-[minmax(0,1fr)_17rem]">
           <div className="min-w-0 max-w-3xl">
             <ArticleOutlineDisclosure items={outline} className="mb-10 lg:hidden" />
             <ArticleBody body={article.body} />
@@ -145,16 +145,30 @@ export default function ArticlePage({ params }: Route.ComponentProps) {
 
             <p className="mt-12 flex gap-3 rounded-2xl bg-ink-50 p-5 text-sm leading-relaxed text-ink-600 ring-1 ring-ink-100 ring-inset">
               <MessageSquareText aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-ink-400" />
-              <span>
-                Une information vous semble inexacte, dépassée ou peu claire&nbsp;?{" "}
-                <Link
-                  to="/contact"
-                  className="font-semibold whitespace-nowrap text-brand-700 underline underline-offset-2 hover:text-brand-800"
-                >
-                  Signalez-la-nous
-                </Link>
-                &nbsp;: vos remarques aident à améliorer ces guides.
-              </span>
+              {canReceiveMessages ? (
+                <span>
+                  Une information vous semble inexacte, dépassée ou peu claire&nbsp;?{" "}
+                  <Link
+                    to="/contact"
+                    className="font-semibold whitespace-nowrap text-brand-700 underline underline-offset-2 hover:text-brand-800"
+                  >
+                    Signalez-la-nous
+                  </Link>
+                  &nbsp;: vos remarques aident à améliorer ces guides.
+                </span>
+              ) : (
+                <span>
+                  Une information vous semble inexacte, dépassée ou peu claire&nbsp;? Dès que le{" "}
+                  <Link
+                    to="/contact"
+                    className="font-semibold whitespace-nowrap text-brand-700 underline underline-offset-2 hover:text-brand-800"
+                  >
+                    formulaire de contact
+                  </Link>{" "}
+                  sera activé, vous pourrez nous la signaler&nbsp;: vos remarques aideront à améliorer ces
+                  guides.
+                </span>
+              )}
             </p>
           </div>
 
@@ -195,7 +209,7 @@ export default function ArticlePage({ params }: Route.ComponentProps) {
             }
           />
           {others.length > 0 && (
-            <ul className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            <ul className="mt-10 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {others.map((other) => (
                 <li key={other.slug}>
                   <ArticleCard article={other} />

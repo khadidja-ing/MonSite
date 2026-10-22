@@ -13,6 +13,7 @@ import { Container } from "~/components/ui/Container";
 import { Notice } from "~/components/ui/Notice";
 import { PageHeader } from "~/components/ui/PageHeader";
 import { SectionHeading } from "~/components/ui/SectionHeading";
+import { canReceiveMessages } from "~/config/site";
 import { getCategory } from "~/data/categories";
 import { getTool, tools } from "~/data/tools";
 import type { Tool } from "~/data/types";
@@ -41,7 +42,19 @@ export function meta({ params }: Route.MetaArgs) {
     });
   }
 
-  const category = getCategory(tool.category);
+  // Données structurées pour les moteurs de recherche : une page qui
+  // présente l'outil (ou la formation). Aucune note ni aucun prix.
+  const about =
+    tool.category === "formation"
+      ? {
+          "@type": "Course",
+          name: tool.name,
+          description: tool.tagline,
+          url: tool.website,
+          provider: { "@type": "Organization", name: tool.publisher },
+        }
+      : { "@type": "Thing", name: tool.name, description: tool.tagline, url: tool.website };
+
   return [
     ...pageMeta({
       title: `${tool.name} — fiche, usages et accès`,
@@ -51,12 +64,10 @@ export function meta({ params }: Route.MetaArgs) {
     {
       "script:ld+json": {
         "@context": "https://schema.org",
-        "@type": "SoftwareApplication",
-        name: tool.name,
-        url: tool.website,
-        description: tool.tagline,
-        applicationCategory: category?.name ?? tool.category,
-        publisher: { "@type": "Organization", name: tool.publisher },
+        "@type": "WebPage",
+        name: `${tool.name} — fiche, usages et accès`,
+        inLanguage: "fr",
+        about,
       },
     },
   ];
@@ -204,13 +215,15 @@ function SourcesCard({ tool }: { tool: Tool }) {
       <div className="mt-6 border-t border-ink-100 pt-5">
         <p className="text-sm leading-relaxed text-ink-600">
           Ces informations sont données à titre indicatif. Une erreur ou une information dépassée ?
+          {!canReceiveMessages &&
+            " Dès que le formulaire de contact sera activé, vous pourrez nous la signaler."}
         </p>
         <Link
           to={`/contact?sujet=signaler-erreur&outil=${encodeURIComponent(tool.slug)}`}
           className="mt-2 inline-flex min-h-10 items-center gap-2 rounded-lg text-sm font-semibold text-brand-700 hover:underline"
         >
           <Flag aria-hidden="true" className="size-4 shrink-0" />
-          Signaler une erreur sur cette fiche
+          {canReceiveMessages ? "Signaler une erreur sur cette fiche" : "Préparer un signalement pour cette fiche"}
         </Link>
       </div>
     </section>
@@ -251,7 +264,7 @@ export default function OutilPage({ params }: Route.ComponentProps) {
         description={
           <>
             <p className="text-base font-medium text-ink-500">
-              Édité par <span className="text-ink-800">{tool.publisher}</span>
+              Éditeur : <span className="text-ink-800">{tool.publisher}</span>
             </p>
             <p className="mt-3">{tool.tagline}</p>
           </>
@@ -287,7 +300,7 @@ export default function OutilPage({ params }: Route.ComponentProps) {
 
             <DetailSection id="usages" title="Principaux usages">
               {tool.uses.length > 0 ? (
-                <ul className="grid gap-3 sm:grid-cols-2">
+                <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   {tool.uses.map((use) => (
                     <li
                       key={use}
@@ -334,7 +347,7 @@ export default function OutilPage({ params }: Route.ComponentProps) {
                 </ButtonLink>
               }
             />
-            <ul className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            <ul className="mt-10 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {similar.map((other) => (
                 <li key={other.slug}>
                   <ToolCard tool={other} headingLevel="h3" />

@@ -38,7 +38,7 @@ export function HomeHero() {
       className="relative overflow-hidden border-b border-ink-100 bg-linear-to-b from-brand-50/70 via-white to-white"
     >
       <div aria-hidden="true" className="bg-grid absolute inset-0" />
-      <Container className="relative grid items-center gap-14 py-14 sm:py-20 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] lg:gap-16 lg:py-24">
+      <Container className="relative grid grid-cols-1 items-center gap-14 py-14 sm:py-20 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] lg:gap-16 lg:py-24">
         <div className="animate-fade-in">
           <p className="inline-flex items-center gap-2 rounded-full bg-white/80 px-3 py-1 text-sm font-medium text-ink-700 shadow-card ring-1 ring-ink-100">
             <span aria-hidden="true" className="size-1.5 rounded-full bg-accent-500" />
@@ -63,7 +63,7 @@ export function HomeHero() {
             <label htmlFor="accueil-recherche" className="text-sm font-semibold text-ink-900">
               Que voulez-vous faire ?
             </label>
-            <div className="mt-2 flex flex-col gap-2 rounded-2xl bg-white p-2 shadow-card-hover ring-1 ring-ink-200 transition-shadow focus-within:ring-2 focus-within:ring-brand-500 sm:flex-row sm:items-center">
+            <div className="mt-2 flex flex-col gap-2 rounded-2xl bg-white p-2 shadow-card-hover ring-1 ring-ink-400 transition-shadow focus-within:ring-2 focus-within:ring-brand-500 sm:flex-row sm:items-center">
               <div className="relative min-w-0 flex-1">
                 <Search
                   aria-hidden="true"

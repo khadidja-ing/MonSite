@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import type { Service, Tool } from "~/data/types";
 import {
+  applyContactPrefill,
   buildContactPayload,
   buildMailtoHref,
   checkRateLimit,
@@ -11,10 +12,12 @@ import {
   getServiceGroupLabel,
   getSubjectHint,
   getSubjectLabel,
+  getSubmitLabel,
   hasErrors,
   isValidEmail,
   messageCounterText,
   MIN_FILL_TIME_MS,
+  pickTypedValues,
   prefillFromSearchParams,
   RATE_LIMIT_MAX,
   RATE_LIMIT_STORAGE_KEY,
@@ -117,6 +120,29 @@ describe("sujets", () => {
     expect(getSubjectHint("service:conseil", services)).not.toMatch(/en préparation/);
     expect(getSubjectHint("signaler-erreur", services)).toMatch(/fiche concernée/);
     expect(getSubjectHint("information", services)).toBeUndefined();
+  });
+
+  it("parle au présent seulement si un message peut nous parvenir", () => {
+    const can = { canReceiveMessages: true };
+    const cannot = { canReceiveMessages: false };
+    expect(getSubjectHint("service:formation", services, can)).toMatch(/votre message permet simplement/);
+    expect(getSubjectHint("service:formation", services, cannot)).toMatch(
+      /dès que le formulaire de contact sera activé, votre message permettra/,
+    );
+    expect(getSubjectHint("service:formation", services, cannot)).not.toMatch(/permet simplement/);
+    expect(getSubjectHint("suggerer-outil", services, can)).toMatch(/Chaque suggestion est vérifiée/);
+    expect(getSubjectHint("suggerer-outil", services, cannot)).toMatch(
+      /Une fois le formulaire de contact activé, chaque suggestion sera vérifiée/,
+    );
+    // Les simples conseils de rédaction restent les mêmes.
+    expect(getSubjectHint("service:conseil", services, cannot)).toBe(getSubjectHint("service:conseil", services, can));
+    expect(getSubjectHint("signaler-erreur", services, cannot)).toBe(getSubjectHint("signaler-erreur", services, can));
+  });
+
+  it("ne promet un envoi sur le bouton que si le formulaire est relié à un service", () => {
+    expect(getSubmitLabel(true)).toBe("Envoyer le message");
+    expect(getSubmitLabel(false)).toBe("Vérifier mon message");
+    expect(getSubmitLabel(false)).not.toMatch(/envoy/i);
   });
 });
 
@@ -227,6 +253,57 @@ describe("prefillFromSearchParams", () => {
 
   it("ne renvoie rien sans paramètre", () => {
     expect(prefill("")).toEqual({});
+  });
+});
+
+describe("applyContactPrefill", () => {
+  const empty: ContactValues = { name: "", email: "", subject: "", message: "" };
+  const report = { subject: "signaler-erreur", message: "Fiche concernée : Assistant X (/outils/assistant-x)\n\n" };
+
+  it("remplit le sujet et le message d'un formulaire vide", () => {
+    expect(applyContactPrefill(empty, report)).toEqual({ ...empty, ...report });
+    expect(applyContactPrefill(empty, {})).toEqual(empty);
+  });
+
+  it("ne remplace jamais un message déjà rédigé", () => {
+    const typed = { ...empty, message: "Mon propre message" };
+    expect(applyContactPrefill(typed, report).message).toBe("Mon propre message");
+  });
+
+  it("remplace l'ancien texte prérempli resté tel quel", () => {
+    const current = { ...empty, message: report.message };
+    const next = { subject: "signaler-erreur", message: "Fiche concernée : Autre (/outils/autre)\n\n" };
+    expect(applyContactPrefill(current, next, { previousPrefill: report.message }).message).toBe(next.message);
+  });
+
+  it("garde le sujet choisi avant que la page soit active", () => {
+    const typed = { ...empty, subject: "information" };
+    expect(applyContactPrefill(typed, report, { keepSubject: true }).subject).toBe("information");
+    // Sans sujet déjà choisi, le préremplissage s'applique quand même.
+    expect(applyContactPrefill(empty, report, { keepSubject: true }).subject).toBe("signaler-erreur");
+    // Changement d'adresse ensuite (lien cliqué sur la page) : le sujet suit l'adresse.
+    expect(applyContactPrefill(typed, report).subject).toBe("signaler-erreur");
+  });
+});
+
+describe("pickTypedValues", () => {
+  it("garde uniquement les champs déjà remplis dans la page", () => {
+    const dom: Record<string, string | undefined> = {
+      name: "Camille",
+      email: "   ",
+      subject: "",
+      message: "Bonjour, voici ma question.",
+    };
+    expect(pickTypedValues((field) => dom[field])).toEqual({
+      name: "Camille",
+      message: "Bonjour, voici ma question.",
+    });
+  });
+
+  it("ne renvoie rien si aucun champ n'est rempli ou lisible", () => {
+    expect(pickTypedValues(() => "")).toEqual({});
+    expect(pickTypedValues(() => undefined)).toEqual({});
+    expect(pickTypedValues(() => null)).toEqual({});
   });
 });
 

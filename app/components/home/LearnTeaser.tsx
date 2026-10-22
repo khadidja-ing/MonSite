@@ -25,7 +25,7 @@ export function LearnTeaser() {
   return (
     <section aria-labelledby="ressources-titre" className="py-20 sm:py-24">
       <Container>
-        <div className="grid overflow-hidden rounded-3xl bg-white shadow-card ring-1 ring-ink-100 lg:grid-cols-2">
+        <div className="grid grid-cols-1 overflow-hidden rounded-3xl bg-white shadow-card ring-1 ring-ink-100 lg:grid-cols-2">
           <div className="flex flex-col justify-center p-6 sm:p-10 lg:p-12">
             <span className="flex size-12 items-center justify-center rounded-2xl bg-accent-50 text-accent-700 ring-1 ring-accent-100 ring-inset">
               <BookOpen aria-hidden="true" className="size-6" />

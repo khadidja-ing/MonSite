@@ -64,7 +64,7 @@ export function ResourceTypeFilter({
                     aria-hidden="true"
                     className={cn(
                       "min-w-6 rounded-full px-1.5 py-0.5 text-center text-xs font-semibold tabular-nums",
-                      isActive ? "bg-white/20 text-white" : "bg-ink-100 text-ink-600",
+                      isActive ? "bg-white text-brand-700" : "bg-ink-100 text-ink-600",
                     )}
                   >
                     {count}

@@ -15,6 +15,7 @@
  * adresse IP, captcha si besoin) doit aussi être activée sur le service qui
  * reçoit les messages.
  */
+import { canReceiveMessages } from "~/config/site";
 import { services as allServices } from "~/data/services";
 import { tools as allTools } from "~/data/tools";
 import type { Service, Tool } from "~/data/types";
@@ -99,19 +100,35 @@ export function getSubjectService(value: string, services: Service[] = allServic
   return services.find((service) => service.slug === slug);
 }
 
-/** Conseil affiché sous la liste des sujets, selon le sujet choisi. */
-export function getSubjectHint(value: string, services: Service[] = allServices): string | undefined {
+/**
+ * Conseil affiché sous la liste des sujets, selon le sujet choisi.
+ *
+ * Tant qu'aucun moyen de contact ne fonctionne (formulaire non activé et pas
+ * d'e-mail), les conseils parlent au futur : aucun message ne peut encore
+ * nous parvenir. `options.canReceiveMessages` sert surtout aux tests.
+ */
+export function getSubjectHint(
+  value: string,
+  services: Service[] = allServices,
+  options: { canReceiveMessages?: boolean } = {},
+): string | undefined {
+  const canReceive = options.canReceiveMessages ?? canReceiveMessages;
   const service = getSubjectService(value, services);
   if (service) {
-    return service.status === "en-preparation"
+    if (service.status !== "en-preparation") {
+      return "Décrivez en quelques lignes votre situation et ce que vous aimeriez obtenir.";
+    }
+    return canReceive
       ? "Cette prestation est en préparation\u00a0: votre message permet simplement de manifester votre intérêt, sans aucun engagement."
-      : "Décrivez en quelques lignes votre situation et ce que vous aimeriez obtenir.";
+      : "Cette prestation est en préparation\u00a0: dès que le formulaire de contact sera activé, votre message permettra simplement de manifester votre intérêt, sans aucun engagement.";
   }
   switch (value) {
     case "signaler-erreur":
       return "Précisez la fiche concernée, l'information à corriger et, si possible, la source qui permet de la vérifier (page officielle de l'outil, par exemple).";
     case "suggerer-outil":
-      return "Indiquez le nom de l'outil, l'adresse de son site officiel et ce à quoi il sert. Chaque suggestion est vérifiée avant un éventuel ajout.";
+      return canReceive
+        ? "Indiquez le nom de l'outil, l'adresse de son site officiel et ce à quoi il sert. Chaque suggestion est vérifiée avant un éventuel ajout."
+        : "Indiquez le nom de l'outil, l'adresse de son site officiel et ce à quoi il sert. Une fois le formulaire de contact activé, chaque suggestion sera vérifiée avant un éventuel ajout.";
     case "partenariat":
       return "Présentez brièvement votre structure et l'idée de partenariat que vous proposez.";
     default:
@@ -142,6 +159,31 @@ export type ContactErrors = Partial<Record<ContactField, string>>;
 export const contactFields: ContactField[] = ["name", "email", "subject", "message"];
 
 export const emptyContactValues: ContactValues = { name: "", email: "", subject: "", message: "" };
+
+/**
+ * Libellé du bouton du formulaire. On ne promet « Envoyer » que si le
+ * formulaire est relié à un service d'envoi ; sinon, le bouton vérifie le
+ * message puis propose de le copier (ou de l'envoyer par e-mail).
+ */
+export function getSubmitLabel(formActive: boolean): string {
+  return formActive ? "Envoyer le message" : "Vérifier mon message";
+}
+
+/**
+ * Valeurs déjà saisies dans les champs avant que la page soit active.
+ *
+ * Les pages sont pré-générées : on peut écrire dans le formulaire avant que
+ * JavaScript soit chargé. `read` renvoie le contenu actuel d'un champ ; seuls
+ * les champs non vides sont gardés, pour ne rien effacer au démarrage.
+ */
+export function pickTypedValues(read: (field: ContactField) => string | null | undefined): Partial<ContactValues> {
+  const typed: Partial<ContactValues> = {};
+  for (const field of contactFields) {
+    const value = read(field);
+    if (value != null && value.trim() !== "") typed[field] = value;
+  }
+  return typed;
+}
 
 export const NAME_MIN = 2;
 export const NAME_MAX = 80;
@@ -294,6 +336,29 @@ export function prefillFromSearchParams(
   }
 
   return prefill;
+}
+
+/**
+ * Applique le préremplissage lu dans l'adresse sans écraser ce que la
+ * personne a déjà écrit :
+ * - le message prérempli ne remplace qu'un message vide, ou le texte
+ *   prérempli précédent (`previousPrefill`) resté tel quel ;
+ * - avec `keepSubject`, un sujet déjà choisi est conservé (sujet choisi
+ *   avant que la page soit active, par exemple).
+ */
+export function applyContactPrefill(
+  current: ContactValues,
+  prefill: ContactPrefill,
+  { previousPrefill, keepSubject = false }: { previousPrefill?: string; keepSubject?: boolean } = {},
+): ContactValues {
+  const next = { ...current };
+  if (prefill.subject && !(keepSubject && current.subject.trim() !== "")) {
+    next.subject = prefill.subject;
+  }
+  if (prefill.message && (current.message.trim() === "" || current.message === previousPrefill)) {
+    next.message = prefill.message;
+  }
+  return next;
 }
 
 /* ------------------------------------------------------------------ */

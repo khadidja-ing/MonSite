@@ -1,6 +1,7 @@
 import { ArrowRight, ChevronDown } from "lucide-react";
 import type { ReactNode } from "react";
 import { Link } from "react-router";
+import { canReceiveMessages } from "~/config/site";
 import { Container } from "~/components/ui/Container";
 import { SectionHeading } from "~/components/ui/SectionHeading";
 
@@ -29,8 +30,10 @@ function buildItems(hasServicesInPreparation: boolean): FaqItem[] {
       answer: (
         <p>
           Les tarifs ne sont pas encore définis. Ils seront précisés selon votre besoin et communiqués
-          clairement avant tout engagement de votre part. Prendre contact ou manifester votre intérêt
-          ne vous engage à rien.
+          clairement avant tout engagement de votre part.{" "}
+          {canReceiveMessages
+            ? "Prendre contact ou manifester votre intérêt ne vous engage à rien."
+            : "Une fois le formulaire de contact activé, prendre contact ou manifester votre intérêt ne vous engagera à rien."}
         </p>
       ),
     },
@@ -60,7 +63,7 @@ function buildItems(hasServicesInPreparation: boolean): FaqItem[] {
   if (hasServicesInPreparation) {
     items.push({
       question: "Comment être informé de l'ouverture ?",
-      answer: (
+      answer: canReceiveMessages ? (
         <p>
           Utilisez le bouton « Manifester mon intérêt » du service qui vous intéresse, ou écrivez-nous
           via le{" "}
@@ -69,6 +72,17 @@ function buildItems(hasServicesInPreparation: boolean): FaqItem[] {
           </Link>{" "}
           en précisant ce que vous attendez. Votre message permettra de vous recontacter au sujet de ce
           service. Aucune date d'ouverture n'est annoncée pour l'instant.
+        </p>
+      ) : (
+        <p>
+          Ce n'est pas encore possible : le{" "}
+          <Link to="/contact" className={inlineLink}>
+            formulaire de contact
+          </Link>{" "}
+          n'est pas activé pour l'instant, et aucun message ne peut nous être envoyé. Dès qu'il le
+          sera, vous pourrez nous écrire en précisant le service qui vous intéresse. En attendant, le bouton
+          « Préparer ma demande » vous permet de rédiger votre message et de le garder de côté. Aucune
+          date d'ouverture n'est annoncée à ce jour.
         </p>
       ),
     });
@@ -111,7 +125,7 @@ export function ServicesFaq({
 
   return (
     <section id={id} aria-labelledby={`${id}-titre`} className="py-20 sm:py-24">
-      <Container className="grid gap-10 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:gap-16">
+      <Container className="grid grid-cols-1 gap-10 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:gap-16">
         <div>
           <SectionHeading
             id={`${id}-titre`}
@@ -123,7 +137,7 @@ export function ServicesFaq({
             to="/contact"
             className="mt-6 inline-flex min-h-10 items-center gap-1 rounded text-sm font-semibold text-brand-700 hover:underline"
           >
-            Une autre question ? Écrivez-nous
+            {canReceiveMessages ? "Une autre question ? Écrivez-nous" : "Une autre question ? Voir comment nous contacter"}
             <ArrowRight aria-hidden="true" className="size-4" />
           </Link>
         </div>

@@ -1,7 +1,7 @@
 import { Menu, X } from "lucide-react";
 import { useEffect, useId, useRef, useState, type FocusEvent, type MouseEvent } from "react";
 import { NavLink, useLocation } from "react-router";
-import { mainNav } from "~/config/site";
+import { canReceiveMessages, mainNav } from "~/config/site";
 import { cn } from "~/lib/cn";
 import { ButtonLink } from "../ui/Button";
 import { Container } from "../ui/Container";
@@ -18,6 +18,9 @@ const navLinkClasses = ({ isActive }: { isActive: boolean }) =>
       ? "text-brand-700 underline decoration-2 underline-offset-8"
       : "text-ink-700 hover:bg-ink-50 hover:text-ink-950",
   );
+
+/** Libellé du bouton de contact : neutre tant qu'aucun message ne peut être reçu. */
+const contactLabel = canReceiveMessages ? "Nous contacter" : "Contact";
 
 export function Header() {
   const [open, setOpen] = useState(false);
@@ -84,7 +87,7 @@ export function Header() {
 
         <div className="flex items-center gap-2">
           <ButtonLink to="/contact" size="sm" className="max-sm:hidden">
-            Nous contacter
+            {contactLabel}
           </ButtonLink>
           <button
             ref={toggleRef}
@@ -127,7 +130,7 @@ export function Header() {
             </ul>
           </nav>
           <ButtonLink to="/contact" className="mt-4 w-full">
-            Nous contacter
+            {contactLabel}
           </ButtonLink>
         </Container>
       </div>

@@ -13,7 +13,11 @@ import { Link } from "react-router";
 import { AccessBadge } from "~/components/tools/AccessBadge";
 import { Container } from "~/components/ui/Container";
 import { SectionHeading } from "~/components/ui/SectionHeading";
+import { canReceiveMessages } from "~/config/site";
 import { accessModels } from "~/lib/catalog";
+
+const inlineLink =
+  "font-semibold text-brand-700 underline decoration-brand-200 underline-offset-2 hover:decoration-brand-700";
 
 const principles: { icon: LucideIcon; title: string; text: ReactNode }[] = [
   {
@@ -55,15 +59,21 @@ const principles: { icon: LucideIcon; title: string; text: ReactNode }[] = [
   {
     icon: Flag,
     title: "Des corrections bienvenues",
-    text: (
+    text: canReceiveMessages ? (
       <>
         Une erreur, une information dépassée ?{" "}
-        <Link
-          to="/contact?sujet=signaler-erreur"
-          className="font-semibold text-brand-700 underline decoration-brand-200 underline-offset-2 hover:decoration-brand-700"
-        >
+        <Link to="/contact?sujet=signaler-erreur" className={inlineLink}>
           Signalez-la via le formulaire de contact
         </Link> : elle sera vérifiée, puis corrigée si nécessaire.
+      </>
+    ) : (
+      <>
+        Une erreur, une information dépassée ? Dès que le{" "}
+        <Link to="/contact?sujet=signaler-erreur" className={inlineLink}>
+          formulaire de contact
+        </Link>{" "}
+        sera activé, vous pourrez nous la signaler : elle sera alors vérifiée, puis corrigée si
+        nécessaire.
       </>
     ),
   },
@@ -73,7 +83,7 @@ const principles: { icon: LucideIcon; title: string; text: ReactNode }[] = [
 export function EditorialPrinciples() {
   return (
     <section aria-labelledby="principes-titre" className="py-20 sm:py-24">
-      <Container className="grid gap-12 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:gap-16">
+      <Container className="grid grid-cols-1 gap-12 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:gap-16">
         <div className="lg:sticky lg:top-24 lg:self-start">
           <SectionHeading
             id="principes-titre"

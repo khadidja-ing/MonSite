@@ -1,13 +1,15 @@
 import { LegalList, LegalNote } from "~/components/legal/LegalBlocks";
 import { LegalPage, type LegalSection } from "~/components/legal/LegalPage";
-import { TextLink } from "~/components/legal/TextLink";
+import { MailtoLink, TextLink } from "~/components/legal/TextLink";
 import { ToComplete } from "~/components/legal/ToComplete";
-import { siteConfig } from "~/config/site";
+import { canReceiveMessages, hasContactEmail, isContactFormActive, siteConfig } from "~/config/site";
 import { services } from "~/data/services";
 import { pageMeta } from "~/lib/meta";
 import type { Route } from "./+types/conditions-utilisation";
 
 const siteName = siteConfig.name;
+// Typée « string » : l'adresse peut être renseignée plus tard dans les réglages.
+const contactEmail: string = siteConfig.contact.email.trim();
 const servicesInPreparation = services.filter((service) => service.status === "en-preparation").length;
 const allServicesInPreparation = services.length > 0 && servicesInPreparation === services.length;
 
@@ -41,9 +43,11 @@ function ServicesStatusText() {
             : "Leur présentation est fournie à titre d'information et ne constitue pas, à elle seule, une offre commerciale."}
       </p>
       <p>
-        Manifester votre intérêt via le formulaire de contact ne vous engage à rien. Toute prestation
-        éventuelle ferait l'objet d'un échange préalable et de conditions particulières, communiquées
-        avant tout engagement.
+        {canReceiveMessages
+          ? "Manifester votre intérêt ne vous engage à rien."
+          : "Dès que le formulaire de contact sera activé, vous pourrez nous faire part de votre intérêt, sans aucun engagement de votre part."}{" "}
+        Toute prestation éventuelle ferait l'objet d'un échange préalable et de conditions
+        particulières, communiquées avant tout engagement.
       </p>
     </>
   );
@@ -147,7 +151,11 @@ const sections: LegalSection[] = [
     title: "Utilisation du formulaire de contact",
     content: (
       <>
-        <p>Le formulaire de contact est à votre disposition pour toute question ou suggestion. En l'utilisant, vous vous engagez à :</p>
+        <p>
+          {isContactFormActive
+            ? "Le formulaire de contact est à votre disposition pour toute question ou suggestion. En l'utilisant, vous vous engagez à\u00a0:"
+            : "Le formulaire de contact sera bientôt activé\u00a0: il vous permettra alors de nous adresser vos questions et suggestions. En l'utilisant, vous vous engagerez à\u00a0:"}
+        </p>
         <LegalList>
           <li>fournir des informations exactes, en particulier votre adresse e-mail ;</li>
           <li>ne pas envoyer de contenu illicite, injurieux ou portant atteinte aux droits d'autrui ;</li>
@@ -176,11 +184,27 @@ const sections: LegalSection[] = [
     title: "Signaler une erreur",
     content: (
       <p>
-        Malgré le soin apporté aux fiches, une information peut être inexacte ou dépassée. Si vous
-        repérez une erreur, vous pouvez la{" "}
-        <TextLink to="/contact?sujet=signaler-erreur">signaler via le formulaire de contact</TextLink>,
-        en précisant la fiche concernée et la correction à apporter. Chaque signalement est vérifié
-        avant une éventuelle correction.
+        Malgré le soin apporté aux fiches, une information peut être inexacte ou dépassée.{" "}
+        {isContactFormActive ? (
+          <>
+            Si vous repérez une erreur, vous pouvez la{" "}
+            <TextLink to="/contact?sujet=signaler-erreur">signaler via le formulaire de contact</TextLink>,
+            en précisant la fiche concernée et la correction à apporter. Chaque signalement est vérifié
+            avant une éventuelle correction.
+          </>
+        ) : hasContactEmail ? (
+          <>
+            Si vous repérez une erreur, vous pouvez nous la signaler par e-mail à{" "}
+            <MailtoLink email={contactEmail} />, en précisant la fiche concernée et la correction à
+            apporter. Chaque signalement est vérifié avant une éventuelle correction.
+          </>
+        ) : (
+          <>
+            Dès que le <TextLink to="/contact?sujet=signaler-erreur">formulaire de contact</TextLink> sera
+            activé, vous pourrez nous signaler une erreur repérée, en précisant la fiche concernée et la
+            correction à apporter. Chaque signalement sera vérifié avant une éventuelle correction.
+          </>
+        )}
       </p>
     ),
   },
@@ -214,7 +238,9 @@ export default function ConditionsUtilisationPage() {
   return (
     <LegalPage
       title="Conditions d'utilisation"
-      intro={"Les règles d'utilisation du site, expliquées simplement\u00a0: ce que vous pouvez en attendre, ses limites et vos possibilités de nous signaler une erreur."}
+      intro={`Les règles d'utilisation du site, expliquées simplement\u00a0: ce que vous pouvez en attendre, ses limites et ${
+        canReceiveMessages ? "vos possibilités de nous signaler une erreur" : "comment vous pourrez nous signaler une erreur"
+      }.`}
       sections={sections}
     />
   );

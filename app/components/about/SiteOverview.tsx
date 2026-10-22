@@ -72,7 +72,7 @@ export function SiteOverview() {
           title="Ce que vous trouverez ici"
           description="Quatre rubriques complémentaires, pour découvrir, comprendre et passer à l'action à votre rythme."
         />
-        <ul className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        <ul className="mt-12 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {sections.map((section) => {
             const Icon = section.icon;
             return (

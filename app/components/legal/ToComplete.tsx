@@ -20,3 +20,11 @@ export function SiteValue({ value, missing }: { value: string; missing: ReactNod
   const text = value.trim();
   return text ? <span className="whitespace-pre-line">{text}</span> : <ToComplete>{missing}</ToComplete>;
 }
+
+/**
+ * Repère affiché tant qu'aucun moyen de contact ne fonctionne : ni e-mail
+ * public, ni formulaire relié à un service d'envoi (voir app/config/site.ts).
+ */
+export function MissingContact() {
+  return <ToComplete>moyen de contact de l'éditeur — e-mail, ou formulaire une fois l'envoi activé</ToComplete>;
+}

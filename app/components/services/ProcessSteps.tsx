@@ -45,7 +45,7 @@ export function ProcessSteps({ id = "deroulement" }: { id?: string }) {
           description="Voici la démarche envisagée. Elle sera ajustée à chaque situation : tous les accompagnements ne comportent pas forcément chacune de ces étapes."
         />
 
-        <ol className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        <ol className="mt-12 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {steps.map((step, index) => {
             const Icon = step.icon;
             return (
@@ -59,7 +59,7 @@ export function ProcessSteps({ id = "deroulement" }: { id?: string }) {
                   </span>
                   <span
                     aria-hidden="true"
-                    className="font-display text-3xl font-bold text-ink-300 tabular-nums"
+                    className="font-display text-3xl font-bold text-ink-400 tabular-nums"
                   >
                     {String(index + 1).padStart(2, "0")}
                   </span>

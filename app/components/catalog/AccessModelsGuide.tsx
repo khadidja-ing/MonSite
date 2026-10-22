@@ -1,4 +1,5 @@
 import { Lightbulb } from "lucide-react";
+import { canReceiveMessages } from "~/config/site";
 import { accessModels } from "~/lib/catalog";
 import { accessExplanations } from "~/lib/catalog-ui";
 import { AccessBadge } from "../tools/AccessBadge";
@@ -22,7 +23,7 @@ export function AccessModelsGuide() {
           description="Chaque fiche indique comment l'outil est proposé. Voici ce que signifient ces étiquettes."
         />
 
-        <ul className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <ul className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {accessModels.map((model) => (
             <li
               key={model.value}
@@ -50,12 +51,14 @@ export function AccessModelsGuide() {
             <div>
               <p className="font-display font-semibold text-ink-950">Un outil utile manque au catalogue ?</p>
               <p className="mt-1 text-sm text-ink-600">
-                Vous pouvez nous le proposer via le formulaire de contact.
+                {canReceiveMessages
+                  ? "Vous pouvez nous le proposer via le formulaire de contact."
+                  : "Dès que le formulaire de contact sera activé, vous pourrez nous le proposer."}
               </p>
             </div>
           </div>
           <ButtonLink to="/contact?sujet=suggerer-outil" variant="secondary" className="shrink-0">
-            Suggérer un outil
+            {canReceiveMessages ? "Suggérer un outil" : "Préparer ma suggestion"}
           </ButtonLink>
         </div>
       </Container>

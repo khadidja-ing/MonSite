@@ -4,6 +4,7 @@ import { Badge } from "~/components/ui/Badge";
 import { ButtonLink } from "~/components/ui/Button";
 import { Container } from "~/components/ui/Container";
 import { SectionHeading } from "~/components/ui/SectionHeading";
+import { canReceiveMessages } from "~/config/site";
 import type { Service } from "~/data/types";
 import { areAllServicesInPreparation, getServiceStatusLabel } from "~/lib/highlights";
 import { getIcon } from "~/lib/icons";
@@ -23,8 +24,12 @@ export function ServicesPreview({ services, max = 4 }: { services: Service[]; ma
           title="Envie d'être accompagné ?"
           description={
             allInPreparation
-              ? "Nous préparons des prestations pour vous aider à passer à l'action. Elles ne sont pas encore disponibles, mais vous pouvez dès maintenant nous indiquer celles qui vous intéressent."
-              : "Des prestations pour vous aider à passer à l'action. Certaines sont encore en préparation : vous pouvez déjà nous indiquer celles qui vous intéressent."
+              ? canReceiveMessages
+                ? "Nous préparons des prestations pour vous aider à passer à l'action. Elles ne sont pas encore disponibles, mais vous pouvez dès maintenant nous indiquer celles qui vous intéressent."
+                : "Nous préparons des prestations pour vous aider à passer à l'action. Elles ne sont pas encore disponibles. Dès que le formulaire de contact sera activé, vous pourrez nous indiquer celles qui vous intéressent."
+              : canReceiveMessages
+                ? "Des prestations pour vous aider à passer à l'action. Certaines sont encore en préparation : vous pouvez déjà nous indiquer celles qui vous intéressent."
+                : "Des prestations pour vous aider à passer à l'action. Certaines sont encore en préparation. Dès que le formulaire de contact sera activé, vous pourrez nous indiquer celles qui vous intéressent."
           }
           action={
             <ButtonLink to="/services" variant="secondary">
@@ -34,7 +39,7 @@ export function ServicesPreview({ services, max = 4 }: { services: Service[]; ma
           }
         />
 
-        <ul className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        <ul className="mt-12 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {shown.map((service) => {
             const Icon = getIcon(service.icon);
             const available = service.status === "disponible";
@@ -58,7 +63,11 @@ export function ServicesPreview({ services, max = 4 }: { services: Service[]; ma
                       to={`/contact?service=${encodeURIComponent(service.slug)}`}
                       className="inline-flex min-h-10 items-center gap-1 rounded text-sm font-semibold text-brand-700 hover:underline"
                     >
-                      {available ? "Demander des informations" : "Manifester mon intérêt"}
+                      {canReceiveMessages
+                        ? available
+                          ? "Demander des informations"
+                          : "Manifester mon intérêt"
+                        : "Préparer ma demande"}
                       <span className="sr-only"> : {service.title}</span>
                       <ArrowRight aria-hidden="true" className="size-4" />
                     </Link>

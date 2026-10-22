@@ -8,6 +8,7 @@ import { Container } from "~/components/ui/Container";
 import { EmptyState } from "~/components/ui/EmptyState";
 import { PageHeader } from "~/components/ui/PageHeader";
 import { SectionHeading } from "~/components/ui/SectionHeading";
+import { canReceiveMessages } from "~/config/site";
 import { categories, getCategory } from "~/data/categories";
 import { tools } from "~/data/tools";
 import {
@@ -24,6 +25,9 @@ import { pageMeta } from "~/lib/meta";
 import type { Route } from "./+types/categorie";
 
 const SUGGEST_TOOL_LINK = "/contact?sujet=suggerer-outil";
+
+/** Tant qu'aucun moyen de contact ne fonctionne, le lien invite seulement à préparer sa suggestion. */
+const SUGGEST_TOOL_LABEL = canReceiveMessages ? "Suggérer un outil" : "Préparer ma suggestion";
 
 export function meta({ params }: Route.MetaArgs) {
   const category = getCategory(params.slug);
@@ -107,7 +111,7 @@ export default function CategoriePage({ params }: Route.ComponentProps) {
 
       {/* Exemples d'utilisation */}
       <section aria-labelledby="exemples-titre" className="py-16 sm:py-20">
-        <Container className="grid gap-10 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:gap-16">
+        <Container className="grid grid-cols-1 gap-10 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:gap-16">
           <SectionHeading
             id="exemples-titre"
             eyebrow="Concrètement"
@@ -115,7 +119,7 @@ export default function CategoriePage({ params }: Route.ComponentProps) {
             description="Quelques idées de ce que permettent les outils de cette catégorie, pour vous aider à vous projeter."
           />
           {category.examples.length > 0 ? (
-            <ul className="grid gap-3 self-center sm:grid-cols-2">
+            <ul className="grid grid-cols-1 gap-3 self-center sm:grid-cols-2">
               {category.examples.map((example) => (
                 <li
                   key={example}
@@ -160,14 +164,14 @@ export default function CategoriePage({ params }: Route.ComponentProps) {
                 <p className="mt-6 flex max-w-3xl gap-2.5 text-sm leading-relaxed text-ink-600">
                   <Info aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-ink-400" />
                   <span>
-                    Certains outils sont aussi rattachés à d'autres catégories : l'étiquette grise de
+                    Certains outils sont aussi rattachés à d'autres catégories : la première étiquette de
                     chaque carte indique leur catégorie principale. Les outils dont c'est la catégorie
                     principale apparaissent en premier.
                   </span>
                 </p>
               )}
 
-              <ul className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              <ul className="mt-10 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
                 {categoryTools.map((tool) => (
                   <li key={tool.slug}>
                     <ToolCard tool={tool} />
@@ -190,7 +194,7 @@ export default function CategoriePage({ params }: Route.ComponentProps) {
                     className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded text-sm font-semibold text-brand-700 hover:underline"
                   >
                     <Lightbulb aria-hidden="true" className="size-4" />
-                    Suggérer un outil
+                    {SUGGEST_TOOL_LABEL}
                   </Link>
                 </div>
               </div>
@@ -200,12 +204,16 @@ export default function CategoriePage({ params }: Route.ComponentProps) {
               <EmptyState
                 icon={PackageOpen}
                 title="Aucun outil référencé pour l'instant"
-                description="Aucun outil de cette catégorie n'a encore été ajouté au catalogue. Vous en connaissez un qui mériterait d'y figurer ? Proposez-le : il sera vérifié avant d'être ajouté."
+                description={
+                  canReceiveMessages
+                    ? "Aucun outil de cette catégorie n'a encore été ajouté au catalogue. Vous en connaissez un qui mériterait d'y figurer ? Proposez-le : il sera vérifié avant d'être ajouté."
+                    : "Aucun outil de cette catégorie n'a encore été ajouté au catalogue. Vous en connaissez un qui mériterait d'y figurer ? Dès que le formulaire de contact sera activé, vous pourrez nous le proposer : il sera vérifié avant d'être ajouté."
+                }
                 action={
                   <div className="flex flex-col justify-center gap-3 sm:flex-row">
                     <ButtonLink to={SUGGEST_TOOL_LINK}>
                       <Lightbulb aria-hidden="true" />
-                      Suggérer un outil
+                      {SUGGEST_TOOL_LABEL}
                     </ButtonLink>
                     <ButtonLink to="/outils" variant="secondary">
                       Explorer tout le catalogue

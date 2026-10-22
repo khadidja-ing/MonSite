@@ -1,7 +1,7 @@
 import { ArrowRight, Compass, Flag, Lightbulb, Mail, ShieldAlert, Sparkles, type LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { Link } from "react-router";
-import { siteConfig } from "~/config/site";
+import { canReceiveMessages, siteConfig } from "~/config/site";
 import { services } from "~/data/services";
 import { textLinkClasses } from "~/components/legal/TextLink";
 
@@ -30,8 +30,12 @@ const topics: Topic[] = [
           icon: Sparkles,
           title: "Un intérêt pour un service",
           text: allServicesInPreparation
-            ? "Les services d'accompagnement sont en préparation : vous pouvez déjà manifester votre intérêt, sans engagement."
-            : "Conseil, automatisation, formation… Décrivez votre situation pour en savoir plus sur un service.",
+            ? canReceiveMessages
+              ? "Les services d'accompagnement sont en préparation\u00a0: vous pouvez déjà manifester votre intérêt, sans engagement."
+              : "Les services d'accompagnement sont en préparation\u00a0: dès que le formulaire de contact sera activé, vous pourrez manifester votre intérêt, sans engagement."
+            : canReceiveMessages
+              ? "Conseil, automatisation, formation… Décrivez votre situation pour en savoir plus sur un service."
+              : "Conseil, automatisation, formation… Dès que le formulaire de contact sera activé, vous pourrez décrire votre situation pour en savoir plus sur un service.",
           link: { label: "Voir les services", to: "/services" },
         },
       ]
@@ -39,7 +43,9 @@ const topics: Topic[] = [
   {
     icon: Flag,
     title: "Une erreur sur une fiche",
-    text: "Vous signalez une erreur sur une fiche\u00a0? Précisez la fiche et la correction (avec la source, si possible).",
+    text: canReceiveMessages
+      ? "Vous signalez une erreur sur une fiche\u00a0? Précisez la fiche et la correction (avec la source, si possible)."
+      : "Notez la fiche concernée et la correction à apporter (avec la source, si possible).",
   },
   {
     icon: Lightbulb,
@@ -54,8 +60,14 @@ export function ContactAside() {
     <aside aria-labelledby="contact-aide-titre" className="space-y-6">
       <div className="rounded-3xl bg-ink-50/70 p-5 ring-1 ring-ink-100 sm:p-6">
         <h2 id="contact-aide-titre" className="text-lg font-semibold tracking-tight">
-          Ce que vous pouvez nous demander
+          {canReceiveMessages ? "Ce que vous pouvez nous demander" : "Ce que vous pourrez nous demander"}
         </h2>
+        {!canReceiveMessages && (
+          <p className="mt-2 text-sm leading-relaxed text-ink-600">
+            Le formulaire de contact sera bientôt activé. En attendant, ces conseils vous aident à préparer
+            votre message.
+          </p>
+        )}
         <ul className="mt-5 space-y-5">
           {topics.map(({ icon: Icon, title, text, link }) => (
             <li key={title} className="flex gap-3.5">

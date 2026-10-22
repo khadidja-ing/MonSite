@@ -8,7 +8,7 @@ export function RelatedCategories({ categories }: { categories: Category[] }) {
   if (categories.length === 0) return null;
 
   return (
-    <ul className="grid gap-3 sm:grid-cols-2">
+    <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2">
       {categories.map((category) => {
         const Icon = getIcon(category.icon);
         return (

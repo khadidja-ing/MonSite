@@ -1,11 +1,12 @@
-import { ChevronDown, Info, LoaderCircle, Lock, Send } from "lucide-react";
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { ChevronDown, ClipboardCheck, Info, LoaderCircle, Lock, Send } from "lucide-react";
+import { useEffect, useLayoutEffect, useRef, useState, type FormEvent } from "react";
 import { useSearchParams } from "react-router";
 import { TextLink } from "~/components/legal/TextLink";
 import { Button } from "~/components/ui/Button";
-import { siteConfig } from "~/config/site";
+import { hasContactEmail, isContactFormActive, siteConfig } from "~/config/site";
 import { services } from "~/data/services";
 import {
+  applyContactPrefill,
   buildMailtoHref,
   checkRateLimit,
   contactFields,
@@ -17,12 +18,14 @@ import {
   getServiceGroupLabel,
   getServiceSubjects,
   getSubjectHint,
+  getSubmitLabel,
   HONEYPOT_FIELD,
   leadingSubjects,
   MESSAGE_MAX,
   MESSAGE_MIN,
   messageCounterText,
   NAME_MAX,
+  pickTypedValues,
   prefillFromSearchParams,
   recordSend,
   submitContact,
@@ -41,7 +44,7 @@ import { controlClasses, describedBy, fieldIds, FormField } from "./FormField";
 // Typées « string » : ces adresses peuvent être renseignées plus tard dans les réglages.
 const formEndpoint: string = siteConfig.contact.formEndpoint;
 const contactEmail: string = siteConfig.contact.email;
-const isOnlineSendingActive = formEndpoint.trim() !== "";
+const submitLabel = getSubmitLabel(isContactFormActive);
 
 const serviceSubjects = getServiceSubjects(services);
 const serviceGroupLabel = getServiceGroupLabel(services);
@@ -53,16 +56,17 @@ const fieldLabels: Record<ContactField, string> = {
   message: "Message",
 };
 
-/** Préremplissage lu dans l'adresse de la page (?service=…, ?sujet=…, ?outil=…). */
-function applyPrefill(current: ContactValues, params: URLSearchParams, previousPrefill: string | undefined) {
-  const prefill = prefillFromSearchParams(params);
-  const next = { ...current };
-  if (prefill.subject) next.subject = prefill.subject;
-  // On ne remplace jamais un message déjà rédigé par la personne.
-  if (prefill.message && (current.message.trim() === "" || current.message === previousPrefill)) {
-    next.message = prefill.message;
+/** Contenu actuel d'un champ du formulaire, lu directement dans la page. */
+function readFieldValue(form: HTMLFormElement, name: string): string | undefined {
+  const element = form.elements.namedItem(name);
+  if (
+    element instanceof HTMLInputElement ||
+    element instanceof HTMLTextAreaElement ||
+    element instanceof HTMLSelectElement
+  ) {
+    return element.value;
   }
-  return { values: next, prefilledMessage: prefill.message };
+  return undefined;
 }
 
 export function ContactForm() {
@@ -100,6 +104,21 @@ export function ContactForm() {
   const startedAt = useRef<number | null>(null);
   const appliedParams = useRef<string | null>(null);
   const typedOnce = useRef(false);
+  /** Champs remplis avant que la page soit active (voir ci-dessous). */
+  const typedBeforeHydration = useRef<Partial<ContactValues>>({});
+
+  // La page est pré-générée : on peut écrire dans les champs avant que JavaScript soit chargé.
+  // Sans cette étape, React viderait ces champs en prenant le relais. On relit donc leur
+  // contenu dès la mise en place (avant tout nouvel affichage) pour le garder.
+  useLayoutEffect(() => {
+    const form = formRef.current;
+    if (!form) return;
+    const typed = pickTypedValues((field) => readFieldValue(form, field));
+    typedBeforeHydration.current = typed;
+    if (Object.keys(typed).length === 0) return;
+    if (typed.message) typedOnce.current = true;
+    setValues((current) => ({ ...current, ...typed }));
+  }, []);
 
   // Heure d'affichage du formulaire (sert à repérer les envois automatiques trop rapides).
   useEffect(() => {
@@ -107,12 +126,15 @@ export function ContactForm() {
   }, []);
 
   // Préremplissage depuis l'adresse, seulement une fois la page active dans le navigateur.
+  // Il n'écrase jamais ce que la personne a déjà écrit, même avant que la page soit active.
   useEffect(() => {
     if (!hydrated || appliedParams.current === paramsKey) return;
+    const isFirstPrefill = appliedParams.current === null;
     appliedParams.current = paramsKey;
-    const params = new URLSearchParams(paramsKey);
-    setValues((current) => applyPrefill(current, params, prefilledMessage).values);
-    setPrefilledMessage(prefillFromSearchParams(params).message);
+    const prefill = prefillFromSearchParams(new URLSearchParams(paramsKey));
+    const keepSubject = isFirstPrefill && Boolean(typedBeforeHydration.current.subject);
+    setValues((current) => applyContactPrefill(current, prefill, { previousPrefill: prefilledMessage, keepSubject }));
+    setPrefilledMessage(prefill.message);
   }, [hydrated, paramsKey, prefilledMessage]);
 
   // Déplace le focus vers le récapitulatif des erreurs ou le message de résultat.
@@ -173,10 +195,21 @@ export function ContactForm() {
       return;
     }
 
+    // Sans service d'envoi, rien ne peut partir : on propose directement de copier le message
+    // (ou de l'envoyer par e-mail). Les protections contre les robots sont alors inutiles.
+    if (!isContactFormActive) {
+      showOutcome({ kind: "not-configured" });
+      return;
+    }
+
     const now = Date.now();
-    const honeypot = String(new FormData(event.currentTarget).get(HONEYPOT_FIELD) ?? "");
+    const honeypotInput = event.currentTarget.elements.namedItem(HONEYPOT_FIELD);
+    const honeypot = honeypotInput instanceof HTMLInputElement ? honeypotInput.value : "";
     const botSignal = detectBot({ honeypot, startedAt: startedAt.current, now });
     if (botSignal) {
+      // Le champ piège peut être rempli par le remplissage automatique du navigateur :
+      // on le vide pour qu'un nouvel essai fonctionne sans recharger la page (ni perdre le message).
+      if (botSignal === "honeypot" && honeypotInput instanceof HTMLInputElement) honeypotInput.value = "";
       showOutcome({ kind: "bot", signal: botSignal });
       return;
     }
@@ -232,14 +265,24 @@ export function ContactForm() {
         <p className="text-sm text-ink-500">Tous les champs sont obligatoires.</p>
       </div>
 
-      {!isOnlineSendingActive && (
+      {!isContactFormActive && (
         <div className="mt-5 flex gap-3 rounded-2xl bg-ink-50 p-4 text-sm leading-relaxed text-ink-700 ring-1 ring-ink-100 ring-inset">
           <Info aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-brand-600" />
-          <p>
-            <strong className="font-semibold text-ink-900">L'envoi en ligne n'est pas encore activé.</strong>{" "}
-            Vous pouvez déjà rédiger votre message&nbsp;: au moment de l'envoi, nous vous indiquerons comment
-            le conserver.
-          </p>
+          {hasContactEmail ? (
+            <p>
+              <strong className="font-semibold text-ink-900">L'envoi en ligne n'est pas encore activé.</strong>{" "}
+              Vous pouvez tout de même préparer votre message ici, puis cliquer sur « {submitLabel} »&nbsp;: vous
+              pourrez alors nous l'envoyer par e-mail ou le copier.
+            </p>
+          ) : (
+            <p>
+              <strong className="font-semibold text-ink-900">
+                L'envoi en ligne n'est pas encore activé&nbsp;: pour le moment, aucun message ne peut nous parvenir.
+              </strong>{" "}
+              Vous pouvez tout de même préparer votre message ici, puis cliquer sur « {submitLabel} »&nbsp;: vous
+              pourrez le copier pour le garder de côté et nous l'envoyer une fois le formulaire activé.
+            </p>
+          )}
         </div>
       )}
 
@@ -254,8 +297,8 @@ export function ContactForm() {
         >
           <h3 id={summaryTitleId} className="text-base font-semibold text-red-950">
             {errorList.length === 1
-              ? "Une information est à corriger avant l'envoi"
-              : `${errorList.length} informations sont à corriger avant l'envoi`}
+              ? `Une information est à corriger${isContactFormActive ? " avant l'envoi" : ""}`
+              : `${errorList.length} informations sont à corriger${isContactFormActive ? " avant l'envoi" : ""}`}
           </h3>
           <ul className="mt-2 space-y-0.5 text-sm">
             {errorList.map((field) => (
@@ -276,7 +319,7 @@ export function ContactForm() {
         </div>
       )}
 
-      <div className="mt-6 grid gap-6 sm:grid-cols-2">
+      <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2">
         <FormField id={ids.name} label={fieldLabels.name} error={errors.name}>
           <input
             id={ids.name}
@@ -433,8 +476,10 @@ export function ContactForm() {
         <p className="flex gap-2 text-sm leading-relaxed text-ink-600 sm:max-w-sm">
           <Lock aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-ink-400" />
           <span>
-            Vos informations servent uniquement à répondre à votre demande. En savoir plus&nbsp;:{" "}
-            <TextLink to="/confidentialite">politique de confidentialité</TextLink>.
+            {isContactFormActive
+              ? "Vos informations servent uniquement à répondre à votre demande."
+              : "Rien n'est transmis par ce formulaire tant que l'envoi en ligne n'est pas activé. Ensuite, vos informations serviront uniquement à répondre à votre demande."}{" "}
+            En savoir plus&nbsp;: <TextLink to="/confidentialite">politique de confidentialité</TextLink>.
           </span>
         </p>
         <Button type="submit" size="lg" disabled={!hydrated || sending} className="w-full sm:w-auto">
@@ -445,8 +490,8 @@ export function ContactForm() {
             </>
           ) : (
             <>
-              <Send aria-hidden="true" />
-              Envoyer le message
+              {isContactFormActive ? <Send aria-hidden="true" /> : <ClipboardCheck aria-hidden="true" />}
+              {submitLabel}
             </>
           )}
         </Button>

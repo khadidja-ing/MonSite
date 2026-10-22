@@ -1,5 +1,6 @@
 import { ArrowRight, BookOpen, CalendarDays, Clock, LayoutGrid, Library } from "lucide-react";
-import { Link, useSearchParams } from "react-router";
+import { useEffect } from "react";
+import { Link, useLocation, useSearchParams } from "react-router";
 import { FinalCta } from "~/components/home/FinalCta";
 import { ArticleCard, FeaturedArticleCard } from "~/components/resources/ArticleCard";
 import { ResourceTypeFilter } from "~/components/resources/ResourceTypeFilter";
@@ -10,6 +11,7 @@ import { EmptyState } from "~/components/ui/EmptyState";
 import { Notice } from "~/components/ui/Notice";
 import { PageHeader } from "~/components/ui/PageHeader";
 import { SectionHeading } from "~/components/ui/SectionHeading";
+import { canReceiveMessages } from "~/config/site";
 import { articles } from "~/data/articles";
 import { getResourceType, resourceTypes } from "~/data/resource-types";
 import { formatDate, plural } from "~/lib/format";
@@ -63,6 +65,15 @@ function lowerNames(types: { name: string }[]): string {
 export default function RessourcesPage() {
   const hydrated = useHydrated();
   const [searchParams] = useSearchParams();
+  const location = useLocation();
+
+  // Après un clic sur une rubrique (lien vers #articles) ou sur « Voir tous
+  // les articles », le focus clavier est placé sur le titre de la liste.
+  useEffect(() => {
+    if (location.hash === `#${LIST_ID}`) {
+      document.getElementById("articles-titre")?.focus({ preventScroll: true });
+    }
+  }, [location.key, location.hash]);
   // L'adresse n'est lue qu'une fois la page active : le premier affichage
   // correspond exactement au HTML pré-généré (tous les articles).
   const activeType = hydrated ? parseResourceType(searchParams.get("type")) : null;
@@ -145,7 +156,7 @@ export default function RessourcesPage() {
       <section id={LIST_ID} aria-labelledby="articles-titre" className="py-14 sm:py-20">
         <Container>
           <div className="max-w-2xl">
-            <h2 id="articles-titre" className="text-3xl font-bold tracking-tight sm:text-4xl">
+            <h2 id="articles-titre" tabIndex={-1} className="text-3xl font-bold tracking-tight focus:outline-none sm:text-4xl">
               Parcourir les articles
             </h2>
             <p className="mt-3 text-lg leading-relaxed text-ink-600">
@@ -196,7 +207,7 @@ export default function RessourcesPage() {
                 }
                 action={
                   articles.length > 0 ? (
-                    <ButtonLink to="/ressources" replace preventScrollReset>
+                    <ButtonLink to={`/ressources#${LIST_ID}`} replace preventScrollReset>
                       Voir tous les articles
                     </ButtonLink>
                   ) : (
@@ -213,7 +224,7 @@ export default function RessourcesPage() {
                 </div>
               )}
               {gridArticles.length > 0 && (
-                <ul className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                <ul className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
                   {gridArticles.map((article) => (
                     <li key={article.slug}>
                       <ArticleCard article={article} />
@@ -254,13 +265,23 @@ export default function RessourcesPage() {
               date de publication, pour que vous sachiez d'où vient l'information et si elle est encore
               d'actualité.
             </p>
-            <p className="mt-2">
-              Une question, ou un sujet que vous aimeriez voir traité&nbsp;?{" "}
-              <Link to="/contact" className="font-semibold text-brand-700 underline underline-offset-2 hover:text-brand-800">
-                Écrivez-nous
-              </Link>
-              .
-            </p>
+            {canReceiveMessages ? (
+              <p className="mt-2">
+                Une question, ou un sujet que vous aimeriez voir traité&nbsp;?{" "}
+                <Link to="/contact" className="font-semibold text-brand-700 underline underline-offset-2 hover:text-brand-800">
+                  Écrivez-nous
+                </Link>
+                .
+              </p>
+            ) : (
+              <p className="mt-2">
+                Une question, ou un sujet que vous aimeriez voir traité&nbsp;? Dès que le{" "}
+                <Link to="/contact" className="font-semibold text-brand-700 underline underline-offset-2 hover:text-brand-800">
+                  formulaire de contact
+                </Link>{" "}
+                sera activé, vous pourrez nous écrire.
+              </p>
+            )}
           </Notice>
         </Container>
       </section>

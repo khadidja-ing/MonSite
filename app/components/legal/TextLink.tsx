@@ -12,6 +12,15 @@ export function TextLink({ className, ...props }: ComponentProps<typeof Link>) {
   return <Link className={cn(textLinkClasses, className)} {...props} />;
 }
 
+/** Lien « mailto: » vers une adresse e-mail, affichée telle quelle. */
+export function MailtoLink({ email, className }: { email: string; className?: string }) {
+  return (
+    <a href={`mailto:${email}`} className={cn(textLinkClasses, className)}>
+      {email}
+    </a>
+  );
+}
+
 /** Lien vers un site externe dans un paragraphe, ouvert dans un nouvel onglet. */
 export function ExternalTextLink({
   href,

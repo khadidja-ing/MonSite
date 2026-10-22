@@ -17,6 +17,7 @@ import { Link } from "react-router";
 import { AccessBadge } from "~/components/tools/AccessBadge";
 import { Container } from "~/components/ui/Container";
 import { SectionHeading } from "~/components/ui/SectionHeading";
+import { canReceiveMessages } from "~/config/site";
 
 const steps: { icon: LucideIcon; title: string; text: string }[] = [
   {
@@ -37,7 +38,9 @@ const steps: { icon: LucideIcon; title: string; text: string }[] = [
   {
     icon: Handshake,
     title: "Faites-vous accompagner si besoin",
-    text: "Vous préférez être guidé ? Des prestations d'accompagnement sont en préparation : vous pouvez déjà nous faire part de votre besoin.",
+    text: canReceiveMessages
+      ? "Vous préférez être guidé ? Des prestations d'accompagnement sont en préparation : vous pouvez déjà nous faire part de votre besoin."
+      : "Vous préférez être guidé ? Des prestations d'accompagnement sont en préparation : dès que le formulaire de contact sera activé, vous pourrez nous faire part de votre besoin.",
   },
 ];
 
@@ -53,7 +56,7 @@ export function HowWeHelp() {
           description="Pas besoin d'être expert : quatre étapes simples pour passer de l'idée à l'outil adapté."
         />
 
-        <ol className="mt-12 grid gap-x-8 gap-y-10 sm:grid-cols-2 lg:grid-cols-4">
+        <ol className="mt-12 grid grid-cols-1 gap-x-8 gap-y-10 sm:grid-cols-2 lg:grid-cols-4">
           {steps.map((step, index) => {
             const Icon = step.icon;
             const isLast = index === steps.length - 1;
@@ -98,6 +101,9 @@ export function HowWeHelp() {
   );
 }
 
+const inlineLink =
+  "font-semibold text-brand-700 underline decoration-brand-200 underline-offset-2 hover:decoration-brand-700";
+
 const commitments: { icon: LucideIcon; title: string; text: ReactNode }[] = [
   {
     icon: CalendarCheck,
@@ -131,17 +137,22 @@ const commitments: { icon: LucideIcon; title: string; text: ReactNode }[] = [
   },
   {
     icon: Flag,
-    title: "Une erreur ? Signalez-la",
-    text: (
+    title: canReceiveMessages ? "Une erreur ? Signalez-la" : "Une erreur ? Vous pourrez la signaler",
+    text: canReceiveMessages ? (
       <>
         Une information vous semble inexacte ou dépassée ?{" "}
-        <Link
-          to="/contact?sujet=signaler-erreur"
-          className="font-semibold text-brand-700 underline decoration-brand-200 underline-offset-2 hover:decoration-brand-700"
-        >
+        <Link to="/contact?sujet=signaler-erreur" className={inlineLink}>
           Signalez-la-nous
         </Link>{" "}
         pour que nous puissions la vérifier et la corriger.
+      </>
+    ) : (
+      <>
+        Une information vous semble inexacte ou dépassée ? Dès que le{" "}
+        <Link to="/contact?sujet=signaler-erreur" className={inlineLink}>
+          formulaire de contact
+        </Link>{" "}
+        sera activé, vous pourrez nous la signaler pour que nous puissions la vérifier et la corriger.
       </>
     ),
   },
@@ -150,7 +161,7 @@ const commitments: { icon: LucideIcon; title: string; text: ReactNode }[] = [
 /** Engagements éditoriaux réellement appliqués sur le site. */
 function EditorialCommitments() {
   return (
-    <div className="mt-16 grid gap-10 rounded-3xl bg-ink-50 p-6 ring-1 ring-ink-100 sm:p-10 lg:grid-cols-[minmax(0,0.7fr)_minmax(0,1.3fr)] lg:gap-14">
+    <div className="mt-16 grid grid-cols-1 gap-10 rounded-3xl bg-ink-50 p-6 ring-1 ring-ink-100 sm:p-10 lg:grid-cols-[minmax(0,0.7fr)_minmax(0,1.3fr)] lg:gap-14">
       <div>
         <h3 className="text-2xl font-bold tracking-tight">Nos engagements éditoriaux</h3>
         <p className="mt-3 leading-relaxed text-ink-600">
@@ -166,7 +177,7 @@ function EditorialCommitments() {
         </Link>
       </div>
 
-      <ul className="grid gap-x-8 gap-y-7 sm:grid-cols-2">
+      <ul className="grid grid-cols-1 gap-x-8 gap-y-7 sm:grid-cols-2">
         {commitments.map((item) => {
           const Icon = item.icon;
           return (

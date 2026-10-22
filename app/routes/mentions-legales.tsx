@@ -1,15 +1,15 @@
 import { LegalInfoList, LegalList, LegalNote } from "~/components/legal/LegalBlocks";
 import { LegalPage, type LegalSection } from "~/components/legal/LegalPage";
-import { TextLink, textLinkClasses } from "~/components/legal/TextLink";
-import { SiteValue, ToComplete } from "~/components/legal/ToComplete";
-import { siteConfig } from "~/config/site";
+import { MailtoLink, TextLink } from "~/components/legal/TextLink";
+import { MissingContact, SiteValue, ToComplete } from "~/components/legal/ToComplete";
+import { canReceiveMessages, hasContactEmail, isContactFormActive, siteConfig } from "~/config/site";
 import { pageMeta } from "~/lib/meta";
 import type { Route } from "./+types/mentions-legales";
 
 // Valeurs à compléter dans app/config/site.ts (rubrique « legal »).
 const legal = siteConfig.legal;
 // Typée « string » : l'adresse peut être renseignée plus tard dans les réglages.
-const contactEmail: string = siteConfig.contact.email;
+const contactEmail: string = siteConfig.contact.email.trim();
 const siteLabel = `${siteConfig.name}${siteConfig.isNameProvisional ? " (nom provisoire)" : ""}`;
 
 export function meta(_: Route.MetaArgs) {
@@ -20,17 +20,18 @@ export function meta(_: Route.MetaArgs) {
   });
 }
 
+/** Contact de l'éditeur : seul un moyen qui fonctionne réellement est proposé. */
 function ContactValue() {
-  return contactEmail ? (
-    <a href={`mailto:${contactEmail}`} className={textLinkClasses}>
-      {contactEmail}
-    </a>
+  return hasContactEmail ? (
+    <MailtoLink email={contactEmail} />
   ) : (
     <>
       <ToComplete>adresse e-mail ou numéro de téléphone de l'éditeur</ToComplete>
-      <span className="mt-1 block text-sm text-ink-600">
-        En attendant&nbsp;: <TextLink to="/contact">formulaire de contact</TextLink>
-      </span>
+      {isContactFormActive && (
+        <span className="mt-1 block text-sm text-ink-600">
+          En attendant&nbsp;: <TextLink to="/contact">formulaire de contact</TextLink>
+        </span>
+      )}
     </>
   );
 }
@@ -170,8 +171,17 @@ const sections: LegalSection[] = [
             Les logos officiels ne sont pas reproduits&nbsp;: chaque outil est représenté par ses initiales.
           </li>
           <li>
-            Si vous êtes titulaire d'une marque citée et souhaitez demander une modification, vous
-            pouvez <TextLink to="/contact">nous écrire</TextLink>.
+            Si vous êtes titulaire d'une marque citée et souhaitez demander une modification,{" "}
+            {canReceiveMessages ? (
+              <>
+                vous pouvez <TextLink to="/contact">nous écrire</TextLink>.
+              </>
+            ) : (
+              <>
+                vous pourrez nous écrire dès que le <TextLink to="/contact">formulaire de contact</TextLink>{" "}
+                sera activé.
+              </>
+            )}
           </li>
         </LegalList>
       </>
@@ -201,21 +211,28 @@ const sections: LegalSection[] = [
     content: (
       <>
         <p>
-          Pour toute question concernant le site ou ces mentions légales, utilisez le{" "}
-          <TextLink to="/contact">formulaire de contact</TextLink>
-          {contactEmail ? (
+          Pour toute question concernant le site ou ces mentions légales,{" "}
+          {isContactFormActive ? (
             <>
-              {" "}
-              ou écrivez à{" "}
-              <a
-                href={`mailto:${contactEmail}`}
-                className={textLinkClasses}
-              >
-                {contactEmail}
-              </a>
+              utilisez le <TextLink to="/contact">formulaire de contact</TextLink>
+              {hasContactEmail && (
+                <>
+                  {" "}
+                  ou écrivez à <MailtoLink email={contactEmail} />
+                </>
+              )}
+              .
             </>
-          ) : null}
-          .
+          ) : hasContactEmail ? (
+            <>
+              écrivez à <MailtoLink email={contactEmail} />.
+            </>
+          ) : (
+            <>
+              vous pourrez nous écrire dès que le <TextLink to="/contact">formulaire de contact</TextLink>{" "}
+              sera activé. <MissingContact />
+            </>
+          )}
         </p>
         <p>
           Pour les questions liées à vos données personnelles, consultez la{" "}

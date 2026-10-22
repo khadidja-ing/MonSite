@@ -83,7 +83,8 @@ const STOP_WORDS = new Set(
 /** Mots utiles d'une recherche, sans accents ni mots courants. */
 export function queryTerms(query: string): string[] {
   const words = normalize(query).split(" ").filter(Boolean);
-  const meaningful = words.filter((word) => !STOP_WORDS.has(word));
+  // Les lettres isolées (le « e » de « e-mail ») et les mots courants sont ignorés.
+  const meaningful = words.filter((word) => word.length > 1 && !STOP_WORDS.has(word));
   return meaningful.length > 0 ? meaningful : words;
 }
 

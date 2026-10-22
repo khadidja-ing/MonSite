@@ -78,7 +78,7 @@ export function HeroPreview() {
             to="/outils"
             className="inline-flex min-h-10 shrink-0 items-center gap-1 rounded-lg text-sm font-semibold text-brand-700 hover:underline"
           >
-            Tout voir
+            Tout voir<span className="sr-only"> : tous les outils du catalogue</span>
             <ArrowRight aria-hidden="true" className="size-4" />
           </Link>
         </div>

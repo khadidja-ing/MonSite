@@ -2,10 +2,11 @@ import { Mail } from "lucide-react";
 import type { Ref } from "react";
 import { buttonClasses } from "~/components/ui/Button";
 import { Notice } from "~/components/ui/Notice";
-import { RATE_LIMIT_MAX, RATE_LIMIT_WINDOW_MS, type BotSignal } from "~/lib/contact";
+import { isContactFormActive } from "~/config/site";
+import { getSubmitLabel, RATE_LIMIT_MAX, RATE_LIMIT_WINDOW_MS, type BotSignal } from "~/lib/contact";
 import { CopyMessageButton } from "./CopyMessageButton";
 
-/** Résultat d'une tentative d'envoi, affiché sous le bouton « Envoyer ». */
+/** Résultat d'une tentative d'envoi, affiché sous le bouton du formulaire. */
 export type ContactOutcome =
   | { kind: "success" }
   | { kind: "not-configured" }
@@ -14,6 +15,8 @@ export type ContactOutcome =
   | { kind: "bot"; signal: BotSignal };
 
 const windowMinutes = Math.round(RATE_LIMIT_WINDOW_MS / 60_000);
+/** Libellé du bouton du formulaire, cité dans les conseils ci-dessous. */
+const submitLabel = getSubmitLabel(isContactFormActive);
 
 interface ContactResultProps {
   outcome: ContactOutcome;
@@ -56,13 +59,16 @@ export function ContactResult({ outcome, copyText, mailtoHref, ref }: ContactRes
       )}
 
       {outcome.kind === "not-configured" && (
-        <Notice tone="warning" title={"L'envoi en ligne n'est pas encore activé\u00a0: votre message n'a pas été envoyé."}>
+        <Notice
+          tone="warning"
+          title={"Votre message est prêt, mais il n'a pas été envoyé\u00a0: l'envoi en ligne n'est pas encore activé."}
+        >
           <p>
             Le service qui transmettra les messages n'est pas encore en place, donc rien n'a été
-            transmis. Votre texte est conservé dans le formulaire.{" "}
+            transmis. Votre texte reste dans le formulaire tant que vous ne quittez pas cette page.{" "}
             {mailtoHref
               ? "Vous pouvez nous l'envoyer directement par e-mail, ou le copier pour le garder de côté."
-              : "Vous pouvez le copier pour le garder de côté et nous l'envoyer une fois l'envoi en ligne activé."}
+              : "Copiez-le pour le garder de côté (dans un document, par exemple)\u00a0: vous pourrez nous l'envoyer une fois l'envoi en ligne activé."}
           </p>
           <div className="mt-3 flex flex-col items-start gap-3 sm:flex-row">
             {mailtoHref && <MailtoLink href={mailtoHref} />}
@@ -75,7 +81,7 @@ export function ContactResult({ outcome, copyText, mailtoHref, ref }: ContactRes
         <Notice tone="error" title="Votre message n'a pas pu être envoyé.">
           <p>{outcome.message}</p>
           <p className="mt-1">
-            Votre texte est conservé&nbsp;: cliquez de nouveau sur « Envoyer le message » pour réessayer.
+            Votre texte est conservé&nbsp;: cliquez de nouveau sur « {submitLabel} » pour réessayer.
           </p>
           <div className="mt-3 flex flex-col items-start gap-3 sm:flex-row">
             {mailtoHref && <MailtoLink href={mailtoHref} />}
@@ -98,8 +104,8 @@ export function ContactResult({ outcome, copyText, mailtoHref, ref }: ContactRes
         <Notice tone="info" title="Encore un petit instant…">
           <p>
             Le formulaire a été envoyé très peu de temps après l'ouverture de la page, ce qui ressemble
-            à un envoi automatique. Patientez quelques secondes, puis cliquez de nouveau sur « Envoyer
-            le message ».
+            à un envoi automatique. Patientez quelques secondes, puis cliquez de nouveau
+            sur « {submitLabel} ».
           </p>
         </Notice>
       )}
@@ -108,8 +114,15 @@ export function ContactResult({ outcome, copyText, mailtoHref, ref }: ContactRes
         <Notice tone="warning" title="Votre message n'a pas pu être envoyé.">
           <p>
             Un champ invisible, normalement laissé vide, a été rempli&nbsp;: cela arrive avec les robots, et
-            parfois avec le remplissage automatique du navigateur. Rechargez la page, puis réessayez.
+            parfois avec le remplissage automatique du navigateur. Copiez d'abord votre message pour ne pas
+            le perdre, puis cliquez de nouveau sur « {submitLabel} ». Si l'envoi échoue encore, rechargez la
+            page, collez votre message dans le formulaire et réessayez
+            {mailtoHref ? ", ou envoyez-le-nous par e-mail." : "."}
           </p>
+          <div className="mt-3 flex flex-col items-start gap-3 sm:flex-row">
+            {mailtoHref && <MailtoLink href={mailtoHref} />}
+            <CopyMessageButton text={copyText} />
+          </div>
         </Notice>
       )}
     </div>

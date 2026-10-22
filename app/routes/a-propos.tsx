@@ -6,7 +6,7 @@ import { Container } from "~/components/ui/Container";
 import { Notice } from "~/components/ui/Notice";
 import { PageHeader } from "~/components/ui/PageHeader";
 import { SectionHeading } from "~/components/ui/SectionHeading";
-import { siteConfig } from "~/config/site";
+import { canReceiveMessages, siteConfig } from "~/config/site";
 import { pageMeta } from "~/lib/meta";
 import type { Route } from "./+types/a-propos";
 
@@ -58,9 +58,19 @@ export default function AProposPage() {
       <FinalCta
         id="contact-titre"
         title="Une question, une suggestion ?"
-        description="Un outil à proposer, une erreur à signaler, une question sur la plateforme ? Écrivez-nous."
-        primary={{ label: "Nous contacter", to: "/contact" }}
-        secondary={{ label: "Suggérer un outil", to: "/contact?sujet=suggerer-outil" }}
+        description={
+          canReceiveMessages
+            ? "Un outil à proposer, une erreur à signaler, une question sur la plateforme ? Écrivez-nous."
+            : "Un outil à proposer, une erreur à signaler, une question sur la plateforme ? Dès que le formulaire de contact sera activé, vous pourrez nous écrire."
+        }
+        primary={{
+          label: canReceiveMessages ? "Nous contacter" : "Voir comment nous contacter",
+          to: "/contact",
+        }}
+        secondary={{
+          label: canReceiveMessages ? "Suggérer un outil" : "Préparer ma suggestion",
+          to: "/contact?sujet=suggerer-outil",
+        }}
       />
     </>
   );

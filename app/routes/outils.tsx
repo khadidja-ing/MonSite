@@ -245,7 +245,9 @@ export default function OutilsPage() {
                       : "Le catalogue est en cours de constitution."
                   }
                   action={
-                    canReceiveMessages ? <ButtonLink to={SUGGEST_TOOL_LINK}>Suggérer un outil</ButtonLink> : undefined
+                    <ButtonLink to={SUGGEST_TOOL_LINK}>
+                      {canReceiveMessages ? "Suggérer un outil" : "Préparer ma suggestion"}
+                    </ButtonLink>
                   }
                 />
               ) : (
@@ -266,11 +268,9 @@ export default function OutilsPage() {
                   action={
                     <div className="flex flex-col gap-3 sm:flex-row">
                       <Button onClick={resetAndFocus}>Réinitialiser les filtres</Button>
-                      {canReceiveMessages && (
-                        <ButtonLink to={SUGGEST_TOOL_LINK} variant="secondary">
-                          Suggérer un outil
-                        </ButtonLink>
-                      )}
+                      <ButtonLink to={SUGGEST_TOOL_LINK} variant="secondary">
+                        {canReceiveMessages ? "Suggérer un outil" : "Préparer ma suggestion"}
+                      </ButtonLink>
                     </div>
                   }
                 />

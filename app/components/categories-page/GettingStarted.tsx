@@ -40,7 +40,7 @@ function CatalogSearchForm() {
             maxLength={100}
             autoComplete="off"
             placeholder="Ex. : résumer un document"
-            className="h-11 w-full rounded-xl bg-white pr-3 pl-10 text-base text-ink-900 shadow-sm ring-1 ring-ink-200 ring-inset placeholder:text-ink-500 hover:ring-ink-300 sm:text-sm"
+            className="h-11 w-full rounded-xl bg-white pr-3 pl-10 text-base text-ink-900 shadow-sm ring-1 ring-ink-400 ring-inset placeholder:text-ink-500 hover:ring-ink-500 sm:text-sm"
           />
         </div>
         <Button type="submit">Rechercher</Button>
@@ -112,7 +112,7 @@ export function GettingStarted({ id = "par-ou-commencer" }: { id?: string }) {
   return (
     <section id={id} aria-labelledby={`${id}-titre`} className="pb-20 sm:pb-24">
       <Container>
-        <div className="grid gap-10 rounded-3xl bg-ink-50 p-5 ring-1 ring-ink-100 sm:p-10 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:gap-14">
+        <div className="grid grid-cols-1 gap-10 rounded-3xl bg-ink-50 p-5 ring-1 ring-ink-100 sm:p-10 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:gap-14">
           <SectionHeading
             id={`${id}-titre`}
             eyebrow="Vous débutez ?"

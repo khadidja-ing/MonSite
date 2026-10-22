@@ -7,6 +7,7 @@ import { ButtonLink, buttonClasses } from "~/components/ui/Button";
 import { Container } from "~/components/ui/Container";
 import { PageHeader } from "~/components/ui/PageHeader";
 import { SectionHeading } from "~/components/ui/SectionHeading";
+import { canReceiveMessages } from "~/config/site";
 import { categories } from "~/data/categories";
 import { tools } from "~/data/tools";
 import { countToolsByCategory } from "~/lib/categories-page";
@@ -75,7 +76,7 @@ export default function CategoriesPage() {
             description={catalogSummary()}
           />
 
-          <ul className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <ul className="mt-10 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {categories.map((category) => (
               <li key={category.slug}>
                 <CategoryCard category={category} toolCount={counts[category.slug]} />
@@ -93,8 +94,15 @@ export default function CategoriesPage() {
       <FinalCta
         id="suggestion-titre"
         title="Un outil manque à l'appel ?"
-        description="Le catalogue s'enrichit progressivement. Si vous connaissez un outil utile qui n'y figure pas encore, proposez-le : s'il correspond aux critères de sélection, il sera vérifié avant d'être ajouté."
-        primary={{ label: "Suggérer un outil", to: "/contact?sujet=suggerer-outil" }}
+        description={
+          canReceiveMessages
+            ? "Le catalogue s'enrichit progressivement. Si vous connaissez un outil utile qui n'y figure pas encore, proposez-le : s'il correspond aux critères de sélection, il sera vérifié avant d'être ajouté."
+            : "Le catalogue s'enrichit progressivement. Si vous connaissez un outil utile qui n'y figure pas encore, vous pourrez nous le proposer dès que le formulaire de contact sera activé : s'il correspond aux critères de sélection, il sera vérifié avant d'être ajouté."
+        }
+        primary={{
+          label: canReceiveMessages ? "Suggérer un outil" : "Préparer ma suggestion",
+          to: "/contact?sujet=suggerer-outil",
+        }}
         secondary={{ label: "Explorer les outils", to: "/outils" }}
       />
     </>
