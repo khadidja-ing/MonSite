@@ -96,23 +96,34 @@ function stem(term: string): string {
 interface SearchableTool {
   name: string;
   publisher: string;
+  /** Nom de la catégorie principale (ex. « création et montage vidéo vidéo »). */
+  mainCategory: string;
   summary: string;
   details: string;
-  words: { publisher: string[]; summary: string[]; details: string[]; name: string[] };
+  words: { name: string[]; publisher: string[]; mainCategory: string[]; summary: string[]; details: string[] };
 }
 
 function searchable(tool: Tool): SearchableTool {
   const name = normalize(tool.name);
   const publisher = normalize(tool.publisher);
+  const main = categories.find((category) => category.slug === tool.category);
+  const mainCategory = normalize(main ? `${main.name} ${main.shortName}` : "");
   const summary = normalize([tool.tagline, ...tool.uses].join(" "));
   const details = normalize([tool.description, ...categoryNames(tool)].join(" "));
   const split = (text: string) => text.split(" ");
   return {
     name,
     publisher,
+    mainCategory,
     summary,
     details,
-    words: { name: split(name), publisher: split(publisher), summary: split(summary), details: split(details) },
+    words: {
+      name: split(name),
+      publisher: split(publisher),
+      mainCategory: split(mainCategory),
+      summary: split(summary),
+      details: split(details),
+    },
   };
 }
 
@@ -125,6 +136,8 @@ function scoreTerm(entry: SearchableTool, term: string): number {
   if (entry.name.startsWith(term)) return 60;
   if (entry.name.includes(term)) return 40;
   if (hasWordStartingWith(entry.words.name)) return 30;
+  // Le mot correspond à la catégorie principale de l'outil (ex. « vidéo »).
+  if (hasWordStartingWith(entry.words.mainCategory)) return 25;
   if (entry.publisher.includes(term)) return 20;
   if (hasWordStartingWith(entry.words.publisher)) return 15;
   if (entry.summary.includes(term)) return 10;

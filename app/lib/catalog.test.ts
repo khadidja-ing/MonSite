@@ -192,6 +192,11 @@ describe("recherche sur le catalogue réel", () => {
     expect(search(query)).toContain(slug);
   });
 
+  it("classe d'abord les outils dont c'est la catégorie principale", () => {
+    const first = searchCatalog(realTools, { ...defaultCriteria, query: "faire une vidéo" }).tools[0];
+    expect(first.category).toBe("video");
+  });
+
   it.each(["faire une vidéo", "transcrire une réunion", "écrire un e-mail", "créer un logo", "image, voix, traduction"])(
     "« %s » donne des résultats, sans renvoyer tout le catalogue",
     (query) => {
