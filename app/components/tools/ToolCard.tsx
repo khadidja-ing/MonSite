@@ -45,7 +45,12 @@ export function ToolCard({ tool, headingLevel = "h3" }: { tool: Tool; headingLev
 
       <div className="mt-auto pt-5">
         <div className="flex flex-wrap items-center gap-2">
-          {category && <Badge>{category.shortName}</Badge>}
+          {category && (
+            <Badge>
+              <span className="sr-only">Catégorie principale : </span>
+              {category.shortName}
+            </Badge>
+          )}
           <AccessBadge access={tool.access} />
         </div>
         <div className="mt-4 flex items-center justify-between gap-3 border-t border-ink-100 pt-2 text-sm">
@@ -60,7 +65,7 @@ export function ToolCard({ tool, headingLevel = "h3" }: { tool: Tool; headingLev
           >
             <span className="truncate">{displayDomain(tool.website)}</span>
             <ArrowUpRight aria-hidden="true" className="size-4" />
-            <span className="sr-only"> — site officiel de {tool.name} (nouvel onglet)</span>
+            <span className="sr-only"> — site officiel : {tool.name} (nouvel onglet)</span>
           </a>
         </div>
       </div>

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Tool } from "~/data/types";
+import { tools as realTools } from "~/data/tools";
 import {
   criteriaFromSearchParams,
   criteriaToSearchParams,
@@ -8,7 +9,9 @@ import {
   getToolsByCategory,
   hasActiveFilters,
   normalize,
+  queryTerms,
   scoreTool,
+  searchCatalog,
 } from "./catalog";
 
 /** Fiches fictives utilisées uniquement pour les tests (jamais affichées). */
@@ -135,4 +138,63 @@ describe("getToolsByCategory", () => {
   it("inclut les outils dont la catégorie est secondaire", () => {
     expect(getToolsByCategory(sample, "marketing").map((t) => t.slug)).toEqual(["beta"]);
   });
+});
+
+describe("recherche en langage naturel", () => {
+  it("ignore les mots courants", () => {
+    expect(queryTerms("Je veux faire une vidéo")).toEqual(["video"]);
+    expect(queryTerms("un")).toEqual(["un"]);
+  });
+
+  it("rapproche les mots de même famille (traduire / traduction)", () => {
+    const tool = makeTool({ slug: "x", name: "X", category: "audio", tagline: "Service de traduction" });
+    expect(scoreTool(tool, "traduire")).toBeGreaterThan(0);
+    expect(scoreTool(tool, "je veux traduire un poème")).toBe(0); // « poème » absent
+  });
+
+  it("propose des résultats approchants quand aucun outil ne contient tous les mots", () => {
+    const result = searchCatalog(sample, { ...defaultCriteria, query: "voix inexistant" });
+    expect(result.approximate).toBe(true);
+    expect(result.tools.map((t) => t.slug)).toContain("gamma");
+  });
+
+  it("n'est pas « approchant » quand tous les mots sont trouvés", () => {
+    const result = searchCatalog(sample, { ...defaultCriteria, query: "gamma voix" });
+    expect(result.approximate).toBe(false);
+    expect(result.tools.map((t) => t.slug)).toEqual(["gamma"]);
+  });
+
+  it("respecte les filtres même en mode approchant", () => {
+    const result = searchCatalog(sample, {
+      ...defaultCriteria,
+      query: "voix inexistant",
+      access: ["payant"],
+    });
+    expect(result.tools).toEqual([]);
+  });
+
+  it("une recherche faite de ponctuation n'est pas un filtre actif", () => {
+    expect(hasActiveFilters({ ...defaultCriteria, query: "?" })).toBe(false);
+  });
+});
+
+describe("recherche sur le catalogue réel", () => {
+  const search = (query: string) =>
+    searchCatalog(realTools, { ...defaultCriteria, query }).tools.map((tool) => tool.slug);
+
+  it.each([
+    ["je veux traduire un document", "deepl"],
+    ["traduction", "deepl"],
+    ["générer de la musique", "suno"],
+    ["faire de la musique", "suno"],
+  ])("« %s » trouve %s", (query, slug) => {
+    expect(search(query)).toContain(slug);
+  });
+
+  it.each(["faire une vidéo", "transcrire une réunion", "écrire un e-mail", "créer un logo", "image, voix, traduction"])(
+    "« %s » donne des résultats",
+    (query) => {
+      expect(search(query).length).toBeGreaterThan(0);
+    },
+  );
 });

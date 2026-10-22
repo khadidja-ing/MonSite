@@ -5,15 +5,38 @@
  *    l'affichent automatiquement pour toute adresse inconnue.
  * 2. Crée le plan du site (sitemap.xml) pour les moteurs de recherche,
  *    uniquement si l'adresse du site (VITE_SITE_URL) est renseignée.
+ * 3. Affiche un avertissement si aucun moyen de contact n'est configuré.
  */
-import { copyFile, readdir, stat, writeFile } from "node:fs/promises";
+import { readFile, readdir, stat, writeFile } from "node:fs/promises";
 import { join, relative, sep } from "node:path";
+import { fileURLToPath } from "node:url";
+import { loadEnv } from "vite";
 
-const clientDir = new URL("../build/client/", import.meta.url).pathname;
-const siteUrl = (process.env.VITE_SITE_URL ?? "").replace(/\/+$/, "");
+const projectRoot = fileURLToPath(new URL("..", import.meta.url));
+const clientDir = fileURLToPath(new URL("../build/client/", import.meta.url));
 
-await copyFile(join(clientDir, "__spa-fallback.html"), join(clientDir, "404.html"));
+// Lit les réglages comme Vite (variables d'environnement, puis fichiers .env).
+const env = loadEnv("production", projectRoot, "VITE_");
+const siteUrl = (env.VITE_SITE_URL ?? "").trim().replace(/\/+$/, "");
+const formEndpoint = (env.VITE_CONTACT_FORM_ENDPOINT ?? "").trim();
+
+/* ---------- 1. Page 404 ---------- */
+
+// La page de secours sert de page 404 : elle affiche « Page introuvable »
+// une fois le site chargé. On lui ajoute un titre et l'interdiction
+// d'indexation pour qu'elle soit correcte même avant ce chargement.
+const fallback = join(clientDir, "__spa-fallback.html");
+let html = await readFile(fallback, "utf8");
+if (!html.includes("<title>")) {
+  html = html.replace(
+    "</head>",
+    '<title>Page introuvable</title><meta name="robots" content="noindex"/></head>',
+  );
+}
+await writeFile(join(clientDir, "404.html"), html);
 console.log("Post-build : 404.html créé.");
+
+/* ---------- 2. Plan du site ---------- */
 
 async function findPages(dir) {
   const pages = [];
@@ -23,7 +46,9 @@ async function findPages(dir) {
       if (entry !== "assets") pages.push(...(await findPages(full)));
     } else if (entry === "index.html") {
       const rel = relative(clientDir, dir).split(sep).join("/");
-      pages.push(rel ? `/${rel}` : "/");
+      // Chaque page est publiée sous la forme dossier/index.html :
+      // son adresse définitive se termine donc par « / ».
+      pages.push(rel ? `/${rel}/` : "/");
     }
   }
   return pages;
@@ -31,14 +56,22 @@ async function findPages(dir) {
 
 if (siteUrl) {
   const pages = (await findPages(clientDir)).sort();
-  const urls = pages.map((path) => `  <url><loc>${siteUrl}${path === "/" ? "/" : `${path}`}</loc></url>`);
+  const urls = pages.map((path) => `  <url><loc>${siteUrl}${path}</loc></url>`);
   const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.join("\n")}\n</urlset>\n`;
   await writeFile(join(clientDir, "sitemap.xml"), xml);
-  await writeFile(
-    join(clientDir, "robots.txt"),
-    `User-agent: *\nAllow: /\n\nSitemap: ${siteUrl}/sitemap.xml\n`,
-  );
+  await writeFile(join(clientDir, "robots.txt"), `User-agent: *\nAllow: /\n\nSitemap: ${siteUrl}/sitemap.xml\n`);
   console.log(`Post-build : sitemap.xml créé (${pages.length} pages).`);
 } else {
   console.log("Post-build : VITE_SITE_URL non renseignée, sitemap.xml non généré.");
+}
+
+/* ---------- 3. Vérification du moyen de contact ---------- */
+
+const siteConfigSource = await readFile(join(projectRoot, "app/config/site.ts"), "utf8");
+const hasEmail = /email:\s*"[^"]+"/.test(siteConfigSource);
+if (!formEndpoint && !hasEmail) {
+  console.warn(
+    "\n⚠️  Post-build : aucun moyen de contact n'est configuré (ni VITE_CONTACT_FORM_ENDPOINT, ni e-mail dans app/config/site.ts).\n" +
+      "    Le site l'indique honnêtement aux visiteurs, mais il faut en configurer un avant la mise en ligne.\n",
+  );
 }

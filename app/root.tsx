@@ -1,5 +1,6 @@
 import "@fontsource-variable/inter";
 import "@fontsource-variable/plus-jakarta-sans";
+import { useEffect, useRef, useState } from "react";
 import {
   isRouteErrorResponse,
   Links,
@@ -7,6 +8,7 @@ import {
   Outlet,
   Scripts,
   ScrollRestoration,
+  useLocation,
 } from "react-router";
 
 import type { Route } from "./+types/root";
@@ -52,8 +54,43 @@ export function Layout({ children }: { children: React.ReactNode }) {
   );
 }
 
+/**
+ * Accessibilité des changements de page : place le focus au début du
+ * contenu et annonce le titre de la nouvelle page aux lecteurs d'écran.
+ * Les changements de filtres (même adresse, paramètres différents) et les
+ * liens vers une ancre (#…) ne sont pas concernés.
+ */
+function RouteAnnouncer() {
+  const { pathname, hash } = useLocation();
+  const isFirstRender = useRef(true);
+  const [message, setMessage] = useState("");
+
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+    if (hash) return;
+    document.getElementById("contenu")?.focus({ preventScroll: true });
+    // Laisse le temps au nouveau titre de la page d'être appliqué.
+    const frame = requestAnimationFrame(() => setMessage(`Page chargée : ${document.title}`));
+    return () => cancelAnimationFrame(frame);
+  }, [pathname, hash]);
+
+  return (
+    <p role="status" aria-live="polite" className="sr-only">
+      {message}
+    </p>
+  );
+}
+
 export default function App() {
-  return <Outlet />;
+  return (
+    <>
+      <RouteAnnouncer />
+      <Outlet />
+    </>
+  );
 }
 
 /** Page affichée en cas d'erreur (page introuvable ou problème inattendu). */

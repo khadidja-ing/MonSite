@@ -24,7 +24,9 @@ export function absoluteUrl(path: string): string | null {
 
 export function pageMeta({ title, description, path, type = "website", noIndex }: PageMetaInput) {
   const fullTitle = path === "/" ? `${siteConfig.name} — ${title}` : `${title} | ${siteConfig.name}`;
-  const url = absoluteUrl(path);
+  // Chaque page est publiée sous la forme dossier/index.html : son adresse
+  // définitive (celle vers laquelle l'hébergeur redirige) se termine par « / ».
+  const url = absoluteUrl(path === "/" ? "/" : path.replace(/\/?$/, "/"));
   const image = absoluteUrl("/og-image.png");
 
   const tags: Record<string, unknown>[] = [

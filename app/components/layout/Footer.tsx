@@ -47,7 +47,7 @@ export function Footer() {
             </div>
           </div>
           <FooterColumn title="Plateforme" links={[...mainNav, { label: "Contact", to: "/contact" }]} />
-          <FooterColumn title="Catégories populaires" links={topCategories} />
+          <FooterColumn title="Catégories" links={topCategories} />
           <FooterColumn title="Informations légales" links={legalNav} />
         </div>
 

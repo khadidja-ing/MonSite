@@ -71,7 +71,7 @@ export function CatalogSearch({
           enterKeyHint="search"
           maxLength={100}
           aria-describedby={hintId}
-          className="h-14 w-full appearance-none rounded-2xl border-0 bg-white pr-14 pl-12 text-base text-ink-950 shadow-card ring-1 ring-ink-200 transition-shadow ring-inset placeholder:text-ink-500 hover:ring-ink-300 focus:ring-2 focus:ring-brand-600 focus:outline-none [&::-webkit-search-cancel-button]:appearance-none [&::-webkit-search-decoration]:appearance-none"
+          className="h-14 w-full appearance-none rounded-2xl border-0 bg-white pr-14 pl-12 text-base text-ink-950 shadow-card ring-1 ring-ink-400 transition-shadow ring-inset placeholder:text-ink-500 hover:ring-ink-500 focus:ring-2 focus:ring-brand-600 focus:outline-none [&::-webkit-search-cancel-button]:appearance-none [&::-webkit-search-decoration]:appearance-none"
         />
         {value && (
           <button

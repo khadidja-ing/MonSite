@@ -68,29 +68,104 @@ function categoryNames(tool: Tool): string[] {
 }
 
 /**
- * Calcule la pertinence d'un outil pour une recherche.
- * Renvoie 0 si un des mots recherchés est absent de la fiche.
+ * Mots trop courants pour aider la recherche (« je veux faire une vidéo »
+ * → « vidéo »). Ils sont ignorés, sauf si la recherche ne contient qu'eux.
  */
-export function scoreTool(tool: Tool, query: string): number {
-  const terms = normalize(query).split(" ").filter(Boolean);
-  if (terms.length === 0) return 1;
+const STOP_WORDS = new Set(
+  (
+    "a au aux avec c ce ces cet cette d dans de des du en est et il j je l la le les leur " +
+    "m ma me mes mon n ne nos notre on ou par pas pour qu que qui sa se ses son sur " +
+    "ta te tes ton un une vos votre y faire fais veux voudrais aimerais souhaite besoin " +
+    "comment quel quelle quels quelles outil outils ia logiciel application app"
+  ).split(" "),
+);
 
+/** Mots utiles d'une recherche, sans accents ni mots courants. */
+export function queryTerms(query: string): string[] {
+  const words = normalize(query).split(" ").filter(Boolean);
+  const meaningful = words.filter((word) => !STOP_WORDS.has(word));
+  return meaningful.length > 0 ? meaningful : words;
+}
+
+/** Racine approximative d'un mot : « traduire » et « traduction » partagent « tradu ». */
+function stem(term: string): string {
+  return term.length > 5 ? term.slice(0, 5) : term;
+}
+
+interface SearchableTool {
+  name: string;
+  publisher: string;
+  summary: string;
+  details: string;
+  words: { publisher: string[]; summary: string[]; details: string[]; name: string[] };
+}
+
+function searchable(tool: Tool): SearchableTool {
   const name = normalize(tool.name);
   const publisher = normalize(tool.publisher);
   const summary = normalize([tool.tagline, ...tool.uses].join(" "));
   const details = normalize([tool.description, ...categoryNames(tool)].join(" "));
+  const split = (text: string) => text.split(" ");
+  return {
+    name,
+    publisher,
+    summary,
+    details,
+    words: { name: split(name), publisher: split(publisher), summary: split(summary), details: split(details) },
+  };
+}
 
+/** Pertinence d'un seul mot pour un outil (0 si le mot n'apparaît pas). */
+function scoreTerm(entry: SearchableTool, term: string): number {
+  const root = stem(term);
+  const hasWordStartingWith = (words: string[]) => words.some((word) => word.startsWith(root));
+
+  if (entry.name === term) return 100;
+  if (entry.name.startsWith(term)) return 60;
+  if (entry.name.includes(term)) return 40;
+  if (hasWordStartingWith(entry.words.name)) return 30;
+  if (entry.publisher.includes(term)) return 20;
+  if (hasWordStartingWith(entry.words.publisher)) return 15;
+  if (entry.summary.includes(term)) return 10;
+  if (hasWordStartingWith(entry.words.summary)) return 8;
+  if (entry.details.includes(term)) return 5;
+  if (hasWordStartingWith(entry.words.details)) return 4;
+  return 0;
+}
+
+/**
+ * Calcule la pertinence d'un outil pour une recherche.
+ * Renvoie 0 si un des mots utiles de la recherche est absent de la fiche.
+ */
+export function scoreTool(tool: Tool, query: string): number {
+  const terms = queryTerms(query);
+  if (terms.length === 0) return 1;
+  const entry = searchable(tool);
   let score = 0;
   for (const term of terms) {
-    if (name === term) score += 100;
-    else if (name.startsWith(term)) score += 60;
-    else if (name.includes(term)) score += 40;
-    else if (publisher.includes(term)) score += 20;
-    else if (summary.includes(term)) score += 10;
-    else if (details.includes(term)) score += 5;
-    else return 0;
+    const termScore = scoreTerm(entry, term);
+    if (termScore === 0) return 0;
+    score += termScore;
   }
   return score;
+}
+
+/**
+ * Pertinence « souple » : nombre de mots trouvés d'abord, puis leur score.
+ * Utilisée quand aucun outil ne contient tous les mots recherchés.
+ */
+function scoreToolLoosely(tool: Tool, terms: string[]): number {
+  const entry = searchable(tool);
+  let matched = 0;
+  let score = 0;
+  for (const term of terms) {
+    const termScore = scoreTerm(entry, term);
+    if (termScore > 0) {
+      matched += 1;
+      score += termScore;
+    }
+  }
+  return matched === 0 ? 0 : matched * 1000 + score;
 }
 
 const accessOrder: Record<AccessModel, number> = {
@@ -102,19 +177,40 @@ const accessOrder: Record<AccessModel, number> = {
 
 const collator = new Intl.Collator("fr", { sensitivity: "base", numeric: true });
 
+function matchesFilters(tool: Tool, criteria: CatalogCriteria): boolean {
+  if (criteria.categories.length > 0) {
+    const toolCategories = [tool.category, ...(tool.otherCategories ?? [])];
+    if (!criteria.categories.some((slug) => toolCategories.includes(slug))) return false;
+  }
+  if (criteria.access.length > 0 && !criteria.access.includes(tool.access)) return false;
+  return true;
+}
+
+export interface CatalogSearchResult {
+  tools: Tool[];
+  /**
+   * Vrai quand aucun outil ne contient tous les mots recherchés : on affiche
+   * alors ceux qui en contiennent au moins un (« résultats approchants »).
+   */
+  approximate: boolean;
+}
+
 /** Applique la recherche, les filtres et le tri. */
-export function filterTools(tools: Tool[], criteria: CatalogCriteria): Tool[] {
-  const scored = tools
+export function searchCatalog(tools: Tool[], criteria: CatalogCriteria): CatalogSearchResult {
+  const candidates = tools.filter((tool) => matchesFilters(tool, criteria));
+  let approximate = false;
+
+  let scored = candidates
     .map((tool) => ({ tool, score: scoreTool(tool, criteria.query) }))
-    .filter(({ tool, score }) => {
-      if (score === 0) return false;
-      if (criteria.categories.length > 0) {
-        const toolCategories = [tool.category, ...(tool.otherCategories ?? [])];
-        if (!criteria.categories.some((slug) => toolCategories.includes(slug))) return false;
-      }
-      if (criteria.access.length > 0 && !criteria.access.includes(tool.access)) return false;
-      return true;
-    });
+    .filter(({ score }) => score > 0);
+
+  const terms = queryTerms(criteria.query);
+  if (scored.length === 0 && terms.length > 1) {
+    scored = candidates
+      .map((tool) => ({ tool, score: scoreToolLoosely(tool, terms) }))
+      .filter(({ score }) => score > 0);
+    approximate = scored.length > 0;
+  }
 
   const byName = (a: Tool, b: Tool) => collator.compare(a.name, b.name);
 
@@ -132,7 +228,12 @@ export function filterTools(tools: Tool[], criteria: CatalogCriteria): Tool[] {
     }
   });
 
-  return scored.map(({ tool }) => tool);
+  return { tools: scored.map(({ tool }) => tool), approximate };
+}
+
+/** Liste des outils correspondant aux critères (voir searchCatalog). */
+export function filterTools(tools: Tool[], criteria: CatalogCriteria): Tool[] {
+  return searchCatalog(tools, criteria).tools;
 }
 
 /* ---------- Lecture et écriture des critères dans l'adresse de la page ---------- */
@@ -178,7 +279,8 @@ export function criteriaToSearchParams(criteria: CatalogCriteria): URLSearchPara
 }
 
 export function hasActiveFilters(criteria: CatalogCriteria): boolean {
-  return Boolean(criteria.query.trim()) || criteria.categories.length > 0 || criteria.access.length > 0;
+  // Une recherche faite uniquement de ponctuation (« ? », « c++ »…) n'est pas prise en compte.
+  return normalize(criteria.query) !== "" || criteria.categories.length > 0 || criteria.access.length > 0;
 }
 
 /** Outils d'une catégorie (principale ou secondaire), triés par nom. */

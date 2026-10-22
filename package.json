@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "react-router dev",
     "build": "react-router build && node scripts/postbuild.mjs",
-    "preview": "vite preview --outDir build/client",
+    "preview": "node scripts/preview.mjs",
     "typecheck": "react-router typegen && tsc",
     "test": "vitest run"
   },

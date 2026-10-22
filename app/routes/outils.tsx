@@ -10,10 +10,12 @@ import { ToolCard } from "~/components/tools/ToolCard";
 import { Button, ButtonLink } from "~/components/ui/Button";
 import { Container } from "~/components/ui/Container";
 import { EmptyState } from "~/components/ui/EmptyState";
+import { Notice } from "~/components/ui/Notice";
 import { PageHeader } from "~/components/ui/PageHeader";
 import { getCategory } from "~/data/categories";
 import { tools } from "~/data/tools";
-import { getAccessLabel, sortOptions, type SortOption } from "~/lib/catalog";
+import { canReceiveMessages } from "~/config/site";
+import { getAccessLabel, normalize, sortOptions, type SortOption } from "~/lib/catalog";
 import { activeFilterCount, resultsLabel } from "~/lib/catalog-ui";
 import { cn } from "~/lib/cn";
 import { pageMeta } from "~/lib/meta";
@@ -81,7 +83,8 @@ export default function OutilsPage() {
 
   const filterCount = activeFilterCount(criteria);
   const label = resultsLabel(results.length, isFiltered);
-  const trimmedQuery = criteria.query.trim();
+  // Une recherche sans lettre ni chiffre (« ? ») n'est pas prise en compte.
+  const trimmedQuery = normalize(criteria.query) ? criteria.query.trim() : "";
 
   const chips: FilterChip[] = [];
   if (trimmedQuery) {
@@ -161,6 +164,7 @@ export default function OutilsPage() {
             resultCount={results.length}
             onToggleCategory={catalog.toggleCategory}
             onToggleAccess={catalog.toggleAccess}
+            disabled={!hydrated}
             onShowResults={() => {
               setFiltersOpen(false);
               window.requestAnimationFrame(focusResults);
@@ -192,8 +196,9 @@ export default function OutilsPage() {
                   <select
                     id={sortId}
                     value={criteria.sort}
+                    disabled={!hydrated}
                     onChange={(event) => catalog.setSort(event.target.value as SortOption)}
-                    className="h-10 cursor-pointer appearance-none rounded-xl border-0 bg-white py-0 pr-9 pl-3 text-sm font-medium text-ink-900 shadow-sm ring-1 ring-ink-200 transition-shadow ring-inset hover:ring-ink-300 focus:ring-2 focus:ring-brand-600 focus:outline-none"
+                    className="h-10 cursor-pointer appearance-none rounded-xl border-0 bg-white py-0 pr-9 pl-3 text-sm font-medium text-ink-900 shadow-sm ring-1 ring-ink-400 transition-shadow ring-inset hover:ring-ink-500 focus:ring-2 focus:ring-brand-600 focus:outline-none"
                   >
                     {sortOptions.map((option) => (
                       <option key={option.value} value={option.value}>
@@ -215,9 +220,16 @@ export default function OutilsPage() {
               <ActiveFilters chips={chips} onReset={catalog.resetFilters} onFocusFallback={focusResults} />
             </div>
 
+            {catalog.approximate && results.length > 0 && (
+              <Notice className="mt-4" title="Résultats approchants">
+                Aucun outil ne contient tous les mots de votre recherche. Voici ceux qui correspondent au
+                moins en partie, du plus pertinent au moins pertinent.
+              </Notice>
+            )}
+
             <div className="mt-6">
               {results.length > 0 ? (
-                <ul className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+                <ul className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
                   {results.map((tool) => (
                     <li key={tool.slug}>
                       <ToolCard tool={tool} headingLevel="h3" />
@@ -227,8 +239,14 @@ export default function OutilsPage() {
               ) : tools.length === 0 ? (
                 <EmptyState
                   title="Aucun outil n'est encore référencé"
-                  description="Le catalogue est en cours de constitution. Vous connaissez un outil utile ? Vous pouvez nous le proposer."
-                  action={<ButtonLink to={SUGGEST_TOOL_LINK}>Suggérer un outil</ButtonLink>}
+                  description={
+                    canReceiveMessages
+                      ? "Le catalogue est en cours de constitution. Vous connaissez un outil utile ? Vous pouvez nous le proposer."
+                      : "Le catalogue est en cours de constitution."
+                  }
+                  action={
+                    canReceiveMessages ? <ButtonLink to={SUGGEST_TOOL_LINK}>Suggérer un outil</ButtonLink> : undefined
+                  }
                 />
               ) : (
                 <EmptyState
@@ -240,15 +258,19 @@ export default function OutilsPage() {
                         : trimmedQuery
                           ? `Aucun résultat pour «\u00a0${trimmedQuery}\u00a0». Essayez un mot plus court ou plus général, et vérifiez l'orthographe.`
                           : "Aucun outil ne remplit tous les filtres choisis. Retirez un filtre pour élargir la recherche."}{" "}
-                      Si un outil manque au catalogue, vous pouvez nous le suggérer.
+                      {canReceiveMessages
+                        ? "Si un outil manque au catalogue, vous pouvez nous le suggérer."
+                        : "Un outil manque\u00a0? Vous pourrez bientôt nous le suggérer, dès que le formulaire de contact sera activé."}
                     </p>
                   }
                   action={
                     <div className="flex flex-col gap-3 sm:flex-row">
                       <Button onClick={resetAndFocus}>Réinitialiser les filtres</Button>
-                      <ButtonLink to={SUGGEST_TOOL_LINK} variant="secondary">
-                        Suggérer un outil
-                      </ButtonLink>
+                      {canReceiveMessages && (
+                        <ButtonLink to={SUGGEST_TOOL_LINK} variant="secondary">
+                          Suggérer un outil
+                        </ButtonLink>
+                      )}
                     </div>
                   }
                 />

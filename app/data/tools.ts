@@ -234,7 +234,7 @@ export const tools: Tool[] = [
     slug: "microsoft-365-copilot",
     name: "Microsoft 365 Copilot",
     publisher: "Microsoft",
-    website: "https://www.microsoft.com/en-us/microsoft-365-copilot",
+    website: "https://www.microsoft.com/fr-fr/microsoft-365-copilot",
     category: "entreprises",
     otherCategories: [
       "texte",
@@ -717,14 +717,14 @@ export const tools: Tool[] = [
   {
     slug: "cursor",
     name: "Cursor",
-    publisher: "Anysphere",
+    publisher: "Anysphere (SpaceX)",
     website: "https://cursor.com",
     category: "developpement",
     otherCategories: [
       "agents-assistants"
     ],
     tagline: "Éditeur de code intégrant un assistant IA capable de proposer, modifier et expliquer du code.",
-    description: "Cursor est un éditeur de code conçu autour de l’IA, édité par la société Anysphere. Destiné principalement aux développeurs, il propose des complétions automatiques et un agent qui réalise des tâches de programmation à partir d’instructions écrites ; le code produit doit toujours être relu et vérifié. L’offre gratuite est limitée ; les offres payantes permettent un usage plus intensif.",
+    description: "Cursor est un éditeur de code conçu autour de l’IA, édité par la société Anysphere, filiale de SpaceX depuis 2026. Destiné principalement aux développeurs, il propose des complétions automatiques et un agent qui réalise des tâches de programmation à partir d’instructions écrites ; le code produit doit toujours être relu et vérifié. L’offre gratuite est limitée ; les offres payantes permettent un usage plus intensif.",
     uses: [
       "Compléter du code automatiquement",
       "Demander à l’agent de modifier un projet",

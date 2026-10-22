@@ -38,7 +38,7 @@ function FilterOption({
           checked={checked}
           onChange={onChange}
           aria-describedby={description ? descriptionId : undefined}
-          className="peer size-5 cursor-pointer appearance-none rounded-md border border-ink-300 bg-white transition-colors checked:border-brand-600 checked:bg-brand-600 hover:border-ink-400 checked:hover:border-brand-700 checked:hover:bg-brand-700 forced-colors:appearance-auto"
+          className="peer size-5 cursor-pointer appearance-none rounded-md border border-ink-500 bg-white transition-colors checked:border-brand-600 checked:bg-brand-600 hover:border-ink-600 checked:hover:border-brand-700 checked:hover:bg-brand-700 forced-colors:appearance-auto"
         />
         <Check
           aria-hidden="true"
@@ -77,9 +77,17 @@ function FilterOption({
   );
 }
 
-function FilterGroup({ legend, children }: { legend: string; children: ReactNode }) {
+function FilterGroup({
+  legend,
+  disabled,
+  children,
+}: {
+  legend: string;
+  disabled?: boolean;
+  children: ReactNode;
+}) {
   return (
-    <fieldset>
+    <fieldset disabled={disabled}>
       <legend className="px-2.5 text-xs font-semibold tracking-wide text-ink-500 uppercase">{legend}</legend>
       <ul className="mt-2">{children}</ul>
     </fieldset>
@@ -100,6 +108,7 @@ export function FilterPanel({
   onToggleAccess,
   onShowResults,
   onEscape,
+  disabled = false,
 }: {
   id: string;
   open: boolean;
@@ -112,6 +121,8 @@ export function FilterPanel({
   onShowResults: () => void;
   /** Mobile : touche Échap dans le panneau. */
   onEscape: () => void;
+  /** Désactive les cases tant que la page n'est pas active (évite de perdre un clic). */
+  disabled?: boolean;
 }) {
   const headingId = useId();
 
@@ -142,7 +153,7 @@ export function FilterPanel({
         </div>
 
         <div className="mt-4">
-          <FilterGroup legend="Catégories">
+          <FilterGroup legend="Catégories" disabled={disabled}>
             {categories.map((category) => (
               <li key={category.slug}>
                 <FilterOption
@@ -157,7 +168,7 @@ export function FilterPanel({
         </div>
 
         <div className="mt-4 border-t border-ink-100 pt-4">
-          <FilterGroup legend="Modèle d'accès">
+          <FilterGroup legend="Modèle d'accès" disabled={disabled}>
             {accessModels.map((model) => (
               <li key={model.value}>
                 <FilterOption

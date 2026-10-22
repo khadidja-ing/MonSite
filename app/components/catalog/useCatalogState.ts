@@ -7,8 +7,8 @@ import {
   criteriaFromSearchParams,
   criteriaToSearchParams,
   defaultCriteria,
-  filterTools,
   hasActiveFilters,
+  searchCatalog,
   type CatalogCriteria,
   type SortOption,
 } from "~/lib/catalog";
@@ -58,6 +58,14 @@ export function useCatalogState(tools: Tool[]) {
     setParamsRef.current = setSearchParams;
   });
 
+  // Texte tapé dans la recherche avant que la page soit active (connexion
+  // lente) : on le récupère au tout premier affichage, avant que React ne
+  // prenne la main sur le champ, pour ne pas l'effacer.
+  const typedBeforeHydration = useRef("");
+  useLayoutEffect(() => {
+    typedBeforeHydration.current = inputRef.current?.value.trim() ? inputRef.current.value : "";
+  }, []);
+
   const setCriteria = useCallback((next: CatalogCriteria) => {
     criteriaRef.current = next;
     setCriteriaState(next);
@@ -87,10 +95,18 @@ export function useCatalogState(tools: Tool[]) {
     }
     pendingKeys.current = [];
     const fromUrl = criteriaFromSearchParams(new URLSearchParams(paramsKey));
+    const typedEarly = typedBeforeHydration.current;
+    if (typedEarly) {
+      typedBeforeHydration.current = "";
+      const next = { ...fromUrl, query: typedEarly };
+      setCriteria(next);
+      pushToUrl(next);
+      return;
+    }
     // On ne remplace jamais le texte en cours de frappe.
     const typing = document.activeElement === inputRef.current;
     setCriteria({ ...fromUrl, query: typing ? criteriaRef.current.query : fromUrl.query });
-  }, [hydrated, paramsKey, setCriteria]);
+  }, [hydrated, paramsKey, setCriteria, pushToUrl]);
 
   // Recherche → adresse, après une courte pause de frappe.
   useEffect(() => {
@@ -141,7 +157,7 @@ export function useCatalogState(tools: Tool[]) {
   );
 
   const effective = hydrated ? criteria : defaultCriteria;
-  const results = useMemo(() => filterTools(tools, effective), [tools, effective]);
+  const search = useMemo(() => searchCatalog(tools, effective), [tools, effective]);
   const counts = useMemo(() => facetCounts(tools, effective), [tools, effective]);
 
   return {
@@ -152,7 +168,9 @@ export function useCatalogState(tools: Tool[]) {
     commitQuery,
     clearQuery,
     criteria: effective,
-    results,
+    results: search.tools,
+    /** Aucun outil ne contient tous les mots : résultats « approchants ». */
+    approximate: search.approximate,
     counts,
     isFiltered: hasActiveFilters(effective),
     toggleCategory,

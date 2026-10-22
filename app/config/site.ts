@@ -35,8 +35,20 @@ export const siteConfig = {
 
   contact: {
     /** E-mail public de contact. Vide tant qu'il n'est pas confirmé. */
-    email: "",
-    formEndpoint: contactFormEndpoint,
+    email: "" as string,
+    formEndpoint: contactFormEndpoint as string,
+    /**
+     * Service qui reçoit les messages du formulaire (ex. Formspree).
+     * À renseigner en même temps que l'adresse d'envoi : la politique de
+     * confidentialité doit nommer ce prestataire.
+     */
+    formProvider: {
+      name: "" as string,
+      /** Pays ou région où les données sont traitées. */
+      location: "" as string,
+      /** Lien vers la politique de confidentialité du prestataire. */
+      privacyUrl: "" as string,
+    },
   },
 
   /**
@@ -52,9 +64,26 @@ export const siteConfig = {
     publicationDirector: "",
     hostName: "",
     hostAddress: "",
+    /** Durée de conservation des messages reçus (ex. « 3 ans après le dernier échange »). */
+    messageRetention: "" as string,
+    /** Durée de conservation des journaux techniques de l'hébergeur. */
+    hostLogRetention: "" as string,
     lastUpdated: "2026-10-14",
   },
 } as const;
+
+/** Le formulaire de contact est relié à un service d'envoi. */
+export const isContactFormActive = siteConfig.contact.formEndpoint.trim() !== "";
+
+/** Une adresse e-mail publique de contact est indiquée. */
+export const hasContactEmail = siteConfig.contact.email.trim() !== "";
+
+/**
+ * Au moins un moyen de contact fonctionne (formulaire actif ou e-mail).
+ * Tant que ce n'est pas le cas, les pages évitent de promettre qu'un
+ * message peut être envoyé et parlent au futur.
+ */
+export const canReceiveMessages = isContactFormActive || hasContactEmail;
 
 export interface NavItem {
   label: string;

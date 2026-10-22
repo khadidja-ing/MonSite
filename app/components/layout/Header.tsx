@@ -1,5 +1,5 @@
 import { Menu, X } from "lucide-react";
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState, type FocusEvent, type MouseEvent } from "react";
 import { NavLink, useLocation } from "react-router";
 import { mainNav } from "~/config/site";
 import { cn } from "~/lib/cn";
@@ -7,10 +7,16 @@ import { ButtonLink } from "../ui/Button";
 import { Container } from "../ui/Container";
 import { Logo } from "./Logo";
 
+/**
+ * Lien actif : couleur + soulignement (l'information ne repose pas
+ * uniquement sur la couleur).
+ */
 const navLinkClasses = ({ isActive }: { isActive: boolean }) =>
   cn(
-    "rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-    isActive ? "text-brand-700" : "text-ink-700 hover:bg-ink-50 hover:text-ink-950",
+    "inline-flex min-h-10 items-center rounded-lg px-3 text-sm font-medium transition-colors",
+    isActive
+      ? "text-brand-700 underline decoration-2 underline-offset-8"
+      : "text-ink-700 hover:bg-ink-50 hover:text-ink-950",
   );
 
 export function Header() {
@@ -19,7 +25,12 @@ export function Header() {
   const menuId = useId();
   const toggleRef = useRef<HTMLButtonElement>(null);
 
-  // Referme le menu mobile après un changement de page.
+  // « page » uniquement pour la page exacte ; « true » pour une sous-page
+  // de la rubrique (ex. une fiche outil dans « Explorer les outils »).
+  const ariaCurrent = (to: string) => (location.pathname === to ? "page" : "true");
+
+  // Referme le menu mobile après un changement de page (y compris avec
+  // les boutons Précédent / Suivant du navigateur).
   useEffect(() => {
     setOpen(false);
   }, [location.pathname]);
@@ -37,8 +48,25 @@ export function Header() {
     return () => document.removeEventListener("keydown", onKeyDown);
   }, [open]);
 
+  // Referme le menu quand le focus clavier quitte l'en-tête, pour ne pas
+  // laisser le menu masquer l'élément qui reçoit le focus.
+  const closeWhenFocusLeaves = (event: FocusEvent<HTMLElement>) => {
+    if (open && !event.currentTarget.contains(event.relatedTarget as Node | null)) {
+      setOpen(false);
+    }
+  };
+
+  // Referme le menu dès qu'un lien est suivi, même vers la page courante.
+  const closeOnLinkClick = (event: MouseEvent<HTMLElement>) => {
+    if ((event.target as HTMLElement).closest("a")) setOpen(false);
+  };
+
   return (
-    <header className="sticky top-0 z-40 border-b border-ink-100 bg-white/90 backdrop-blur supports-[backdrop-filter]:bg-white/75">
+    <header
+      onBlur={closeWhenFocusLeaves}
+      onClick={closeOnLinkClick}
+      className="sticky top-0 z-40 border-b border-ink-100 bg-white/90 backdrop-blur supports-[backdrop-filter]:bg-white/75"
+    >
       <Container className="flex h-16 items-center justify-between gap-4">
         <Logo />
 
@@ -46,7 +74,7 @@ export function Header() {
           <ul className="flex items-center gap-1">
             {mainNav.map((item) => (
               <li key={item.to}>
-                <NavLink to={item.to} className={navLinkClasses}>
+                <NavLink to={item.to} className={navLinkClasses} aria-current={ariaCurrent(item.to)}>
                   {item.label}
                 </NavLink>
               </li>
@@ -72,7 +100,11 @@ export function Header() {
         </div>
       </Container>
 
-      <div id={menuId} hidden={!open} className="border-t border-ink-100 bg-white lg:hidden">
+      <div
+        id={menuId}
+        hidden={!open}
+        className="max-h-[calc(100dvh-4rem)] overflow-y-auto overscroll-contain border-t border-ink-100 bg-white lg:hidden"
+      >
         <Container className="py-4">
           <nav aria-label="Navigation mobile">
             <ul className="flex flex-col gap-1">
@@ -80,6 +112,7 @@ export function Header() {
                 <li key={item.to}>
                   <NavLink
                     to={item.to}
+                    aria-current={ariaCurrent(item.to)}
                     className={({ isActive }) =>
                       cn(
                         "block rounded-xl px-4 py-3 text-base font-medium",
