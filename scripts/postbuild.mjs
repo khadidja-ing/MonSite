@@ -7,7 +7,7 @@
  *    uniquement si l'adresse du site (VITE_SITE_URL) est renseignée.
  * 3. Affiche un avertissement si aucun moyen de contact n'est configuré.
  */
-import { readFile, readdir, stat, writeFile } from "node:fs/promises";
+import { readFile, readdir, rename, rm, stat, writeFile } from "node:fs/promises";
 import { join, relative, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { loadEnv } from "vite";
@@ -19,6 +19,26 @@ const clientDir = fileURLToPath(new URL("../build/client/", import.meta.url));
 const env = loadEnv("production", projectRoot, "VITE_");
 const siteUrl = (env.VITE_SITE_URL ?? "").trim().replace(/\/+$/, "");
 const formEndpoint = (env.VITE_CONTACT_FORM_ENDPOINT ?? "").trim();
+
+/* ---------- 0. Publication dans un sous-dossier (ex. GitHub Pages) ---------- */
+
+// Avec BASE_PATH="/MonSite/", les pages sont générées dans build/client/MonSite/
+// alors que les fichiers communs (assets…) sont dans build/client/. On remet
+// tout au même niveau : l'hébergeur publie build/client à l'adresse /MonSite/.
+const basePath = (process.env.BASE_PATH || "/").replace(/^\/+|\/+$/g, "");
+if (basePath) {
+  const nested = join(clientDir, ...basePath.split("/"));
+  const exists = await stat(nested).then(() => true, () => false);
+  if (exists) {
+    // À la racine se trouve la page de secours : on lui donne son nom habituel.
+    await rename(join(clientDir, "index.html"), join(clientDir, "__spa-fallback.html")).catch(() => {});
+    for (const entry of await readdir(nested)) {
+      await rename(join(nested, entry), join(clientDir, entry));
+    }
+    await rm(join(clientDir, basePath.split("/")[0]), { recursive: true, force: true });
+    console.log(`Post-build : pages remises à la racine (publication sous /${basePath}/).`);
+  }
+}
 
 /* ---------- 1. Page 404 ---------- */
 

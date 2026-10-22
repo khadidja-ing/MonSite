@@ -21,7 +21,7 @@ import { Container } from "./components/ui/Container";
 import { siteConfig } from "./config/site";
 
 export const links: Route.LinksFunction = () => [
-  { rel: "icon", href: "/favicon.svg", type: "image/svg+xml" },
+  { rel: "icon", href: `${import.meta.env.BASE_URL}favicon.svg`, type: "image/svg+xml" },
 ];
 
 /** Structure HTML commune à toutes les pages. */

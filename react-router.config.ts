@@ -3,7 +3,16 @@ import { categories } from "./app/data/categories";
 import { articles } from "./app/data/articles";
 import { tools } from "./app/data/tools";
 
+/**
+ * Chemin où le site est publié. "/" pour un nom de domaine dédié ;
+ * "/MonSite/" pour l'aperçu sur GitHub Pages (khadidja-ing.github.io/MonSite/).
+ * Il est fourni au moment de la construction par la variable BASE_PATH.
+ */
+const basename = process.env.BASE_PATH || "/";
+
 export default {
+  basename,
+
   // Pas de serveur : le site est composé de fichiers statiques, faciles et
   // peu coûteux à héberger.
   ssr: false,

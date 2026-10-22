@@ -50,7 +50,8 @@ export function pageMeta({ title, description, path, type = "website", noIndex }
     tags.push({ property: "og:image", content: image });
     tags.push({ name: "twitter:image", content: image });
   }
-  if (noIndex) {
+  // VITE_NOINDEX=true : version d'aperçu, à ne pas faire apparaître dans Google.
+  if (noIndex || import.meta.env.VITE_NOINDEX === "true") {
     tags.push({ name: "robots", content: "noindex" });
   }
   return tags;

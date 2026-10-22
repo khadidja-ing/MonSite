@@ -6,6 +6,8 @@ interface ImportMetaEnv {
   readonly VITE_SITE_URL?: string;
   /** Adresse d'envoi du formulaire de contact (ex. Formspree). */
   readonly VITE_CONTACT_FORM_ENDPOINT?: string;
+  /** "true" pour une version d'aperçu à ne pas indexer par les moteurs de recherche. */
+  readonly VITE_NOINDEX?: string;
 }
 
 interface ImportMeta {
